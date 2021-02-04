@@ -17,6 +17,9 @@
 @property (strong, nonatomic) UIView *backgroundView;
 @property (strong, nonatomic) UIButton *button;
 @property (strong, nonatomic) NSMutableArray *savedArray;
+@property (strong, nonatomic) UIButton *favButtonView;
+@property (strong, nonatomic) UIBarButtonItem *goToFavorites;
+
 
 @end
 
@@ -32,10 +35,13 @@
     [_savedArray addObjectsFromArray:array];
     
     
+    // Set visualizer background view
     self.backgroundView = [[UIView alloc] initWithFrame:self.view.frame];
     [_backgroundView setAutoresizingMask:UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth];
     [_backgroundView setBackgroundColor:[UIColor blackColor]];
     [self.view addSubview:_backgroundView];
+    
+    
     
     // Set track label
     _trackLabel = [[UILabel alloc] initWithFrame:CGRectMake(10, (self.view.bounds.size.height / 2) - 140, self.view.bounds.size.width - 20, 140.0)];
@@ -50,12 +56,10 @@
     tapGestureRecognizer.numberOfTapsRequired = 1;
     [_trackLabel addGestureRecognizer:tapGestureRecognizer];
     _trackLabel.userInteractionEnabled = YES;
-    
-    
     [self.view addSubview:_trackLabel];
     
     
-    // Add Button
+    // Add Play/Pause Button
     _button = [UIButton buttonWithType:UIButtonTypeCustom];
      [_button setFrame:CGRectMake((self.view.bounds.size.width / 2) - 100, CGRectGetMaxY(_trackLabel.frame) + 100, 200, 200)];
     _button.clipsToBounds = YES;
@@ -93,6 +97,20 @@
     [_backgroundView addSubview:_visualizer];
     
     
+    //Add Favorites Button
+    _favButtonView = [[UIButton alloc] initWithFrame:CGRectMake(self.view.bounds.size.width - 30, CGRectGetMinY(self.view.frame) + 70, 80, 80)];
+    UIImage *img = [UIImage systemImageNamed:@"star"];
+    [_favButtonView setImage:img forState:UIControlStateNormal];
+    _favButtonView.contentHorizontalAlignment = UIControlContentHorizontalAlignmentFill;
+    _favButtonView.contentVerticalAlignment = UIControlContentVerticalAlignmentFill;
+    _favButtonView.imageView.contentMode = UIViewContentModeScaleAspectFit;
+    _favButtonView.tintColor =[UIColor colorWithRed:178/255.0 green:170/255.0 blue:156/255.0 alpha:0.2];
+    [_favButtonView addTarget:self action:@selector(favButtonPressed) forControlEvents:UIControlEventTouchUpInside];
+    _goToFavorites = [[UIBarButtonItem alloc] initWithCustomView:_favButtonView];
+    self.navigationItem.rightBarButtonItem = _goToFavorites;
+    
+    
+    // Play shoegaze
     [self play];
     
 }
@@ -141,22 +159,33 @@
         _button.tag = 0;
         [_button setTitle:@"PAUSE" forState:UIControlStateNormal];
     }
-    
-    
 }
 
 
-// MARK: Track Label tapped method
+// MARK: Track Label tapped method - Save track name to Defaults
 -(void) labelTapped {
-    
-    
     
     [_savedArray addObject:_trackLabel.text];
     
     [[NSUserDefaults standardUserDefaults] setObject:_savedArray forKey:@"Favorites"];
-    
-    //NSMutableArray *xxx = [[NSUserDefaults standardUserDefaults] objectForKey:@"Favorites"];
+
+}
+
+
+// MARK: Go To Favorites View Button tapped method
+-(void) favButtonPressed {
    
+    FavoritesTableViewController *favoritesViewController = [[FavoritesTableViewController alloc] init];
+    [self.navigationController showViewController:favoritesViewController sender:self];
+  
+
+//    [UIView animateWithDuration:0.5 delay:0 options:UIViewAnimationOptionAutoreverse animations:^{
+//
+//        self->_goToFavorites.tintColor = [UIColor yellowColor];
+//
+//    } completion:nil];
+    
+
     
 }
 

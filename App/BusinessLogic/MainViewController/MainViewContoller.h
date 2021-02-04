@@ -10,7 +10,7 @@
 #import <AVFoundation/AVFoundation.h>
 #import "VisualizerView.h"
 #import <QuartzCore/QuartzCore.h>
-
+#import "FavoritesTableViewController.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
