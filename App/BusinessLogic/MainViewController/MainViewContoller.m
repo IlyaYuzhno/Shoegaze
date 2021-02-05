@@ -19,7 +19,12 @@
 @property (strong, nonatomic) NSMutableArray *savedArray;
 @property (strong, nonatomic) UIButton *favButtonView;
 @property (strong, nonatomic) UIBarButtonItem *goToFavorites;
-
+@property (strong, nonatomic) UIButton *bugrMenuButtonView;
+@property (strong, nonatomic) UIBarButtonItem *goToMenu;
+@property (strong, nonatomic) MenuView *menuView;
+@property (strong, nonatomic) AboutView *aboutView;
+@property (strong, nonatomic) UIVisualEffect *blurEffect;
+@property (strong, nonatomic) UIVisualEffectView *visualEffectView;
 
 @end
 
@@ -40,7 +45,6 @@
     [_backgroundView setAutoresizingMask:UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth];
     [_backgroundView setBackgroundColor:[UIColor blackColor]];
     [self.view addSubview:_backgroundView];
-    
     
     
     // Set track label
@@ -110,8 +114,42 @@
     self.navigationItem.rightBarButtonItem = _goToFavorites;
     
     
+    //Add bugr menu button
+    _bugrMenuButtonView= [[UIButton alloc] initWithFrame:CGRectMake(self.view.bounds.size.width - 30, CGRectGetMinY(self.view.frame) + 70, 80, 80)];
+    UIImage *imgBugr = [UIImage systemImageNamed:@"lineweight"];
+    [_bugrMenuButtonView setImage:imgBugr forState:UIControlStateNormal];
+    _bugrMenuButtonView.contentHorizontalAlignment = UIControlContentHorizontalAlignmentFill;
+    _bugrMenuButtonView.contentVerticalAlignment = UIControlContentVerticalAlignmentFill;
+    _bugrMenuButtonView.imageView.contentMode = UIViewContentModeScaleAspectFit;
+    _bugrMenuButtonView.tintColor = [UIColor colorWithRed:178/255.0 green:170/255.0 blue:156/255.0 alpha:0.2];
+    _bugrMenuButtonView.tag = 0;
+    [_bugrMenuButtonView addTarget:self action:@selector(menuButtonPressed) forControlEvents:UIControlEventTouchUpInside];
+    _goToMenu = [[UIBarButtonItem alloc] initWithCustomView:_bugrMenuButtonView];
+    self.navigationItem.leftBarButtonItem = _goToMenu;
+    
+    
+    //Add Menu View initially off screen
+   _menuView = [[MenuView alloc] initWithFrame:CGRectMake(-300, 100, self.view.bounds.size.width / 3, 200)];
+    _menuView.backgroundColor = [UIColor clearColor];
+    _menuView.layer.cornerRadius = 6;
+    _menuView.alpha = 0.0;
+    [self.view addSubview:_menuView];
+
+    
+    //Add About View initially transparent
+    _aboutView = [[AboutView alloc] initWithFrame:CGRectMake(0, 0, 200, 200)];
+    _aboutView.center = CGPointMake(self.view.frame.size.width  / 2, self.view.frame.size.height / 3);
+    _aboutView.alpha = 0;
+    [self.view addSubview:_aboutView];
+    
     // Play shoegaze
     [self play];
+    
+    //Subscribe to Menu View notifications
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(showAboutViewAndBlur) name:@"aboutPressed" object:nil];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(removeBlur) name:@"aboutOKPressed" object:nil];
+    
     
 }
 
@@ -177,18 +215,73 @@
    
     FavoritesTableViewController *favoritesViewController = [[FavoritesTableViewController alloc] init];
     [self.navigationController showViewController:favoritesViewController sender:self];
-  
-
-//    [UIView animateWithDuration:0.5 delay:0 options:UIViewAnimationOptionAutoreverse animations:^{
-//
-//        self->_goToFavorites.tintColor = [UIColor yellowColor];
-//
-//    } completion:nil];
-    
-
     
 }
 
+
+//MARK: Bugr Menu Animate show and hide
+- (void) menuButtonPressed {
+    
+    if (_bugrMenuButtonView.tag == 0) {
+        _bugrMenuButtonView.tag = 1;
+        _bugrMenuButtonView.tintColor = [UIColor colorWithRed:178/255.0 green:170/255.0 blue:156/255.0 alpha:0.2];
+        
+        //Animate slide menu off screen
+        [UIView animateWithDuration:0.2 delay:0 usingSpringWithDamping:0.5 initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveLinear animations:^{
+            self->_menuView.alpha = 0;
+            CGRect frame = self->_menuView.frame;
+            frame.origin.y = 100;
+            frame.origin.x = -300;
+            self->_menuView.frame = frame;
+        } completion: NULL];
+        
+    } else {
+        _bugrMenuButtonView.tag = 0;
+        _bugrMenuButtonView.tintColor = [UIColor colorWithRed:178/255.0 green:170/255.0 blue:156/255.0 alpha:0.8];
+        
+        //Animate slide menu on screen
+        [UIView animateWithDuration:0.2 delay:0 usingSpringWithDamping:0.8 initialSpringVelocity:0.3 options:UIViewAnimationOptionCurveEaseOut animations:^{
+            self->_menuView.alpha = 1;
+            CGRect frame = self->_menuView.frame;
+            frame.origin.y = 100;
+            frame.origin.x = -10;
+            self->_menuView.frame = frame;
+        } completion: NULL];
+        
+    }
+    
+}
+
+//MARK: Show About View and Blur background
+- (void) showAboutViewAndBlur {
+
+    // Create Blur effect
+    _blurEffect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleLight];
+    _visualEffectView = [[UIVisualEffectView alloc] initWithEffect:_blurEffect];
+    [[_visualEffectView contentView] addSubview:_aboutView];
+    _visualEffectView.frame = self.view.bounds;
+
+    [self.view addSubview:_visualEffectView];
+
+    //Animate About View alpha
+    [UIView animateWithDuration:0.3 delay:0 options:UIViewAnimationOptionCurveLinear animations:^{
+        
+        self->_aboutView.alpha = 1;
+        
+    } completion:NULL];
+
+}
+
+
+//MARK: Remove Blur Effect and hide opened Menu
+- (void) removeBlur {
+    
+    // Remove Blur effect
+    [_visualEffectView removeFromSuperview];
+    
+    // Hide Menu
+    [self menuButtonPressed];
+}
 
 
 

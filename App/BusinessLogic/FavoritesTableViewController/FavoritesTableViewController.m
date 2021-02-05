@@ -18,7 +18,7 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     
-    self.title = @"🎸🎸 🎶♥️ 🎸🎸";
+    self.title = @"❤️❤️❤️";
     
     _favoritesArray = [NSMutableArray new];
     _favoritesArray = [[NSUserDefaults standardUserDefaults] objectForKey:@"Favorites"];
