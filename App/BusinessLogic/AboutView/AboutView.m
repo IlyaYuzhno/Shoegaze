@@ -21,11 +21,12 @@
         //Add About label
         _aboutLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 200, 150)];
         _aboutLabel.numberOfLines = 0;
-        _aboutLabel.adjustsFontSizeToFitWidth = NO;
+        //[_aboutLabel sizeToFit];
+        _aboutLabel.adjustsFontSizeToFitWidth = YES;
         _aboutLabel.baselineAdjustment = UIBaselineAdjustmentAlignCenters;
         _aboutLabel.lineBreakMode = NSLineBreakByWordWrapping;
         _aboutLabel.textAlignment = NSTextAlignmentCenter;
-        [_aboutLabel setFont:[UIFont boldSystemFontOfSize:20]];
+        [_aboutLabel setFont:[UIFont systemFontOfSize:20]];
         _aboutLabel.text = @"DKFM restreaming made by IlyaD for all shoegazers";
         [self addSubview:_aboutLabel];
         

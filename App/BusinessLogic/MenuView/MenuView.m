@@ -55,13 +55,8 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     
-    NSLog(@"pressed");
-    
     //Send notification when About pressed
     [[NSNotificationCenter defaultCenter] postNotificationName:@"aboutPressed" object:nil userInfo:nil];
-//
-//    MainViewContoller *mainVC = [[MainViewContoller alloc] init];
-//    [mainVC showAboutView];
     
 }
 

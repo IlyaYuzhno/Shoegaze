@@ -11,6 +11,9 @@
 
 @property (strong, nonatomic) NSMutableArray *favoritesArray;
 
+@property (nonatomic, strong) NSArray *filteredArray;
+@property (nonatomic, strong) UISearchBar *searchBar;
+
 @end
 
 @implementation FavoritesTableViewController
@@ -22,6 +25,12 @@
     
     _favoritesArray = [NSMutableArray new];
     _favoritesArray = [[NSUserDefaults standardUserDefaults] objectForKey:@"Favorites"];
+    _filteredArray = _favoritesArray;
+    
+    //MARK: Add SearchBar
+    _searchBar = [[UISearchBar alloc] initWithFrame:CGRectMake(0, 0, 320, 44)];
+    _searchBar.delegate = self;
+    self.tableView.tableHeaderView = _searchBar;
     
     self.tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
     
@@ -32,17 +41,36 @@
 #pragma mark - Table view data source
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
 
-    return _favoritesArray.count;
+    return _filteredArray.count;
 }
 
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"favoritesCell" forIndexPath:indexPath];
     
-    cell.textLabel.text = _favoritesArray[indexPath.row];
+    cell.textLabel.text = _filteredArray[indexPath.row];
     
     return cell;
 }
+
+
+//MARK: SearchBarDelegate
+- (void)searchBar:(UISearchBar *)searchBar textDidChange:(NSString *)searchText {
+    
+    if (searchText.length != 0) {
+            NSPredicate *predicate = [NSPredicate predicateWithBlock:^BOOL(NSString *evaluatedString, NSDictionary *bindings) {
+                return [evaluatedString containsString:searchText];
+            }];
+            self.filteredArray = [self.favoritesArray filteredArrayUsingPredicate:predicate];
+    }
+    else {
+        self.filteredArray = self.favoritesArray;
+    }
+    [self.tableView reloadData];
+    
+}
+
+
 
 
 /*

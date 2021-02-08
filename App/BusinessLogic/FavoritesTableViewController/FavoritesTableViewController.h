@@ -9,7 +9,7 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface FavoritesTableViewController : UITableViewController
+@interface FavoritesTableViewController : UITableViewController <UISearchBarDelegate, UISearchDisplayDelegate>
 
 @end
 

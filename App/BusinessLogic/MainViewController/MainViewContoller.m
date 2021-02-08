@@ -25,6 +25,10 @@
 @property (strong, nonatomic) AboutView *aboutView;
 @property (strong, nonatomic) UIVisualEffect *blurEffect;
 @property (strong, nonatomic) UIVisualEffectView *visualEffectView;
+//@property (strong, nonatomic) UIImageView *artistImageView; // for image from LastFM
+
+
+
 
 @end
 
@@ -36,10 +40,10 @@
     self.view.backgroundColor = [UIColor whiteColor];
     self.navigationController.navigationBar.prefersLargeTitles = YES;
     _savedArray = [NSMutableArray new];
-    NSArray *array = [[NSUserDefaults standardUserDefaults] objectForKey:@"Favorites"];
-    [_savedArray addObjectsFromArray:array];
     
-    
+    // Get favorites tracks data from UserDefaults
+    [self getFavoritesData];
+
     // Set visualizer background view
     self.backgroundView = [[UIView alloc] initWithFrame:self.view.frame];
     [_backgroundView setAutoresizingMask:UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth];
@@ -47,51 +51,17 @@
     [self.view addSubview:_backgroundView];
     
     
-    // Set track label
-    _trackLabel = [[UILabel alloc] initWithFrame:CGRectMake(10, (self.view.bounds.size.height / 2) - 140, self.view.bounds.size.width - 20, 140.0)];
-    _trackLabel.textColor = [UIColor whiteColor];
-    _trackLabel.numberOfLines = 0;
-    _trackLabel.adjustsFontSizeToFitWidth = NO;
-    _trackLabel.baselineAdjustment = UIBaselineAdjustmentAlignCenters;
-    _trackLabel.lineBreakMode = NSLineBreakByWordWrapping;
-    _trackLabel.textAlignment = NSTextAlignmentCenter;
-    [_trackLabel setFont:[UIFont boldSystemFontOfSize:24]];
+    // Set track label via Presenter
+    _trackLabel = [Presenter setTrackLabel:_trackLabel controller:self];
     UITapGestureRecognizer *tapGestureRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(labelTapped)];
     tapGestureRecognizer.numberOfTapsRequired = 1;
     [_trackLabel addGestureRecognizer:tapGestureRecognizer];
-    _trackLabel.userInteractionEnabled = YES;
     [self.view addSubview:_trackLabel];
     
     
-    // Add Play/Pause Button
-    _button = [UIButton buttonWithType:UIButtonTypeCustom];
-     [_button setFrame:CGRectMake((self.view.bounds.size.width / 2) - 100, CGRectGetMaxY(_trackLabel.frame) + 100, 200, 200)];
-    _button.clipsToBounds = YES;
-    _button.tag = 0;
-    [_button setTitle:@"PAUSE" forState:UIControlStateNormal];
-    //_button.translatesAutoresizingMaskIntoConstraints = NO;
-    CGFloat radius = MIN(_button.frame.size.width, _button.frame.size.height) / 2.0;
-    _button.layer.cornerRadius = radius;
-    [_button.layer setMasksToBounds:YES];
-    [_button.layer setBorderWidth:4.0f];
-    [_button.layer setBorderColor:[[UIColor colorWithRed:178/255.0 green:170/255.0 blue:156/255.0 alpha:0.4] CGColor]];
-    
-    CAGradientLayer *gradientLayer = [CAGradientLayer layer];
-
-    [gradientLayer setColors:[NSArray arrayWithObjects:(id)[UIColor colorWithRed:0.841 green:0.566 blue:0.566 alpha:1.0].CGColor, (id)[UIColor colorWithRed:0.75 green:0.341 blue:0.345 alpha:1.0].CGColor, (id)[UIColor colorWithRed:0.592 green:0.0 blue:0.0 alpha:1.0].CGColor, (id)[UIColor colorWithRed:0.592 green:0.0 blue:0.0 alpha:1.0].CGColor, nil]];
-    
-    CAShapeLayer *shape = [CAShapeLayer layer];
-    shape.lineWidth = 3;
-    [shape setPath:[[UIBezierPath bezierPathWithRect:_button.bounds] CGPath]];
-    shape.strokeColor = [UIColor blackColor].CGColor;
-    shape.fillColor = [UIColor clearColor].CGColor;
-    gradientLayer.mask = shape;
-
-    //[gradientLayer setFrame:_button.frame];
-    [_button.layer addSublayer:gradientLayer];
-    
+    // Add Play/Pause Button via Presenter
+    _button = [Presenter setPlayButton:_button trackLabel:_trackLabel controller:self];
     [_button addTarget:self action:@selector(playButtonPressed) forControlEvents:UIControlEventTouchUpInside];
-    
     [self.view addSubview:_button];
     
     
@@ -101,28 +71,15 @@
     [_backgroundView addSubview:_visualizer];
     
     
-    //Add Favorites Button
-    _favButtonView = [[UIButton alloc] initWithFrame:CGRectMake(self.view.bounds.size.width - 30, CGRectGetMinY(self.view.frame) + 70, 80, 80)];
-    UIImage *img = [UIImage systemImageNamed:@"star"];
-    [_favButtonView setImage:img forState:UIControlStateNormal];
-    _favButtonView.contentHorizontalAlignment = UIControlContentHorizontalAlignmentFill;
-    _favButtonView.contentVerticalAlignment = UIControlContentVerticalAlignmentFill;
-    _favButtonView.imageView.contentMode = UIViewContentModeScaleAspectFit;
-    _favButtonView.tintColor =[UIColor colorWithRed:178/255.0 green:170/255.0 blue:156/255.0 alpha:0.2];
+    //Add Favorites Button via Presenter
+    _favButtonView = [Presenter setFavoritesButtonView:_favButtonView controller:self];
     [_favButtonView addTarget:self action:@selector(favButtonPressed) forControlEvents:UIControlEventTouchUpInside];
     _goToFavorites = [[UIBarButtonItem alloc] initWithCustomView:_favButtonView];
     self.navigationItem.rightBarButtonItem = _goToFavorites;
     
     
-    //Add bugr menu button
-    _bugrMenuButtonView= [[UIButton alloc] initWithFrame:CGRectMake(self.view.bounds.size.width - 30, CGRectGetMinY(self.view.frame) + 70, 80, 80)];
-    UIImage *imgBugr = [UIImage systemImageNamed:@"lineweight"];
-    [_bugrMenuButtonView setImage:imgBugr forState:UIControlStateNormal];
-    _bugrMenuButtonView.contentHorizontalAlignment = UIControlContentHorizontalAlignmentFill;
-    _bugrMenuButtonView.contentVerticalAlignment = UIControlContentVerticalAlignmentFill;
-    _bugrMenuButtonView.imageView.contentMode = UIViewContentModeScaleAspectFit;
-    _bugrMenuButtonView.tintColor = [UIColor colorWithRed:178/255.0 green:170/255.0 blue:156/255.0 alpha:0.2];
-    _bugrMenuButtonView.tag = 0;
+    //Add bugr menu button via Presenter
+    _bugrMenuButtonView = [Presenter setBugrMenuButtonView:_bugrMenuButtonView controller:self];
     [_bugrMenuButtonView addTarget:self action:@selector(menuButtonPressed) forControlEvents:UIControlEventTouchUpInside];
     _goToMenu = [[UIBarButtonItem alloc] initWithCustomView:_bugrMenuButtonView];
     self.navigationItem.leftBarButtonItem = _goToMenu;
@@ -141,6 +98,16 @@
     _aboutView.center = CGPointMake(self.view.frame.size.width  / 2, self.view.frame.size.height / 3);
     _aboutView.alpha = 0;
     [self.view addSubview:_aboutView];
+    
+    
+    //Add artist downloaded from LastFM image view - currently not working
+    /*
+    _artistImageView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, (self.view.bounds.size.width - 10), 250)];
+    _artistImageView.center = CGPointMake(self.view.frame.size.width / 2, (self.view.frame.size.height / 2) - 200);
+    _artistImageView.layer.cornerRadius = 5;
+    _artistImageView.backgroundColor = [UIColor redColor];
+    [self.view addSubview:_artistImageView];
+    */
     
     // Play shoegaze
     [self play];
@@ -163,26 +130,70 @@
     
     [_playerItem addObserver:self forKeyPath:@"timedMetadata" options:NSKeyValueObservingOptionNew context:nil];
     
-    [_audioPlayer play];
+    
+    
+    [_audioPlayer play]; 
 }
 
 
 //MARK: Get track name method
 - (void) observeValueForKeyPath:(NSString*)keyPath ofObject:(id)object
-                        change:(NSDictionary*)change context:(void*)context {
-
-   if ([keyPath isEqualToString:@"timedMetadata"])
-   {
-      AVPlayerItem* playerItem = object;
-
-      for (AVMetadataItem* metadata in playerItem.timedMetadata)
-      {
-         
-         _trackLabel.text = metadata.stringValue;
-          
-      }
-   }
+                         change:(NSDictionary*)change context:(void*)context {
+    
+    if ([keyPath isEqualToString:@"timedMetadata"])
+    {
+        AVPlayerItem* playerItem = object;
+        
+        for (AVMetadataItem* metadata in playerItem.timedMetadata)
+        {
+            //Show artist and track names
+            _trackLabel.text = metadata.stringValue;
+            
+            // Get artist name and track name from trackLabel text to search image
+            NSString *artistName = [_trackLabel.text componentsSeparatedByString:@" -"][0];
+            NSString *trackName = [_trackLabel.text componentsSeparatedByString:@"- "][1];
+            
+            
+            //Download artist image from LastFM - currently doesn't work
+            /*
+            [[APIManager sharedInstance] artistWithRequest:artistName withCompletion:^(NSDictionary *imgUrl) {
+                if (imgUrl) {
+                    
+                    NSLog(@"image loaded");
+                    
+                    NSString *url = [imgUrl objectForKey:@"#text"];
+                    
+                    NSLog(@"%@", url);
+                    
+                    if ([url isEqualToString:@"https://lastfm.freetls.fastly.net/i/u/174s/2a96cbd8b46e442fc41c2b86b821562f.png"] && [url isEqualToString:@""]) {
+                        self-> _artistImageView.hidden = YES;
+                    } else {
+                        
+                        //add image to image view
+                        self->_artistImageView.image = nil;
+                        self->_artistImageView.hidden = NO;
+                        NSURL *img = [NSURL URLWithString:url];
+                        dispatch_queue_global_t globalQueue = dispatch_get_global_queue(QOS_CLASS_BACKGROUND, 0);
+                        dispatch_async(globalQueue, ^{
+                            NSData *imgData = [NSData dataWithContentsOfURL:img];
+                            dispatch_async(dispatch_get_main_queue(), ^{
+                                self->_artistImageView.image = [UIImage imageWithData:imgData];
+                                
+                            });
+                        });
+                    }
+                    
+                } else {
+                    
+                    // hide imageview if no image downloaded
+                    self-> _artistImageView.hidden = YES;
+                }
+            }];
+             */
+        }
+    }
 }
+
 
 
 //MARK: Pause music method
@@ -200,13 +211,22 @@
 }
 
 
-// MARK: Track Label tapped method - Save track name to Defaults
+// MARK: Track Label tapped method - Save track name to Defaults and animate label
 -(void) labelTapped {
     
     [_savedArray addObject:_trackLabel.text];
     
     [[NSUserDefaults standardUserDefaults] setObject:_savedArray forKey:@"Favorites"];
-
+    
+    //Animate label
+    CAKeyframeAnimation *animation = [[CAKeyframeAnimation alloc] init];
+    animation.keyPath = @"transform.translation.x";
+    CAMediaTimingFunction *xxx = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionLinear];
+    animation.timingFunction = xxx;
+    animation.duration = 0.5;
+    animation.values = @[@-12.0, @12.0, @-12.0, @12.0, @-6.0, @6.0, @-3.0, @3.0, @0.0];
+    [_trackLabel.layer addAnimation:animation forKey:@"shake"];
+    
 }
 
 
@@ -284,5 +304,22 @@
 }
 
 
+//MARK: Get Favorites Data from UserDefaults method
+-(void) getFavoritesData {
+    NSArray *array = [[NSUserDefaults standardUserDefaults] objectForKey:@"Favorites"];
+    if (!array) {
+        [[NSUserDefaults standardUserDefaults] setObject:_savedArray forKey:@"Favorites"];
+    } else {
+        [_savedArray addObjectsFromArray:array];
+    }
+}
+
+
+
+//MARK: Remove observers
+- (void)dealloc {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+    [_playerItem removeObserver:self forKeyPath:@"timedMetadata" context:nil];
+}
 
 @end
