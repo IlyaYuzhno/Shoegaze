@@ -20,11 +20,26 @@
    
     _window = [[UIWindow alloc] initWithWindowScene:(UIWindowScene *)scene];
 
+    // 1.
+    NSError *sessionError = nil;
+    [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayback error:&sessionError];
+   // [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayAndRecord error:&sessionError];
+    [[AVAudioSession sharedInstance] setActive:YES error:&sessionError];
+    [[UIApplication sharedApplication] beginReceivingRemoteControlEvents];
+    
+    // 2. Changing the default output audio route
+    UInt32 doChangeDefaultRoute = 1;
+    AudioSessionSetProperty(kAudioSessionProperty_OverrideCategoryDefaultToSpeaker, sizeof(doChangeDefaultRoute), &doChangeDefaultRoute);
+    
     MainViewContoller *mainViewController = [[MainViewContoller alloc] init];
     UINavigationController *navigationController = [[UINavigationController alloc] initWithRootViewController: mainViewController];
     
     _window.rootViewController = navigationController;
     [_window makeKeyAndVisible];
+    
+    
+ 
+    
 
 }
 
@@ -56,9 +71,10 @@
 
 
 - (void)sceneDidEnterBackground:(UIScene *)scene {
-    // Called as the scene transitions from the foreground to the background.
-    // Use this method to save data, release shared resources, and store enough scene-specific state information
-    // to restore the scene back to its current state.
+    [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayback error:nil];
+    [[AVAudioSession sharedInstance] setActive:YES error:nil];
+    [[UIApplication sharedApplication] beginReceivingRemoteControlEvents];
+    
 }
 
 

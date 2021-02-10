@@ -15,11 +15,13 @@
 #import "AboutView.h"
 #import "APIManager.h"
 #import "Presenter.h"
-
+#import "Animations.h"
+#import "BubbleView.h"
+#import "CheckConnection.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface MainViewContoller : UIViewController
+@interface MainViewContoller : UIViewController <AVPlayerItemMetadataOutputPushDelegate>
 
 
 @end

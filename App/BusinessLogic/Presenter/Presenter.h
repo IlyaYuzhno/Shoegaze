@@ -7,7 +7,7 @@
 
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
-
+#import "BubbleView.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -17,8 +17,10 @@ NS_ASSUME_NONNULL_BEGIN
 +(UIButton *) setPlayButton:(UIButton *)button trackLabel:(UILabel *)label controller:(UIViewController *)controller;
 +(UIButton *) setFavoritesButtonView:(UIButton *)button controller:(UIViewController *)controller;
 +(UIButton *) setBugrMenuButtonView:(UIButton *)button controller:(UIViewController *)controller;
-
-
++(UILabel *) setSaveTrackLabel:(UILabel *)label trackLabel:(UILabel *)tracklabel controller:(UIViewController *)controller;
++(UIView *) setStartBubbleView: (UIView *)view trackLabel:(UILabel *)tracklabel controller:(UIViewController *)controller;
++(void)closeBubbleButtonPressed:(UIButton *)sender;
++(UIImageView *) setArtistImageView: (UIImageView *)view controller:(UIViewController *)controller;
 
 @end
 
