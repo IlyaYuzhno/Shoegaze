@@ -20,8 +20,8 @@
     CGContextSetBlendMode(context, kCGBlendModeLuminosity);
     CGContextBeginTransparencyLayer(context, NULL);
 
-    CGRect rectangleRect = CGRectMake(1, 103, 260, 146);
-    UIBezierPath* rectanglePath = [UIBezierPath bezierPathWithRoundedRect: rectangleRect byRoundingCorners: UIRectCornerTopLeft | UIRectCornerTopRight | UIRectCornerBottomRight cornerRadii: CGSizeMake(30, 30)];
+    CGRect rectangleRect = CGRectMake(1, 1, 260, 146);
+    UIBezierPath* rectanglePath = [UIBezierPath bezierPathWithRoundedRect: rectangleRect byRoundingCorners: UIRectCornerTopRight | UIRectCornerBottomLeft | UIRectCornerBottomRight cornerRadii: CGSizeMake(30, 30)];
     [rectanglePath closePath];
     [UIColor.lightGrayColor setStroke];
     rectanglePath.lineWidth = 4;

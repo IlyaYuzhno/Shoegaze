@@ -6,8 +6,8 @@
 //
 
 #import "APIManager.h"
-#define LASTFM_API_KEY @"8a4e0e0ec25aeb23c1f4f6b54c6ec35f"
-#define LASTFM_SHARED_SECRET @"8ccff43eb1a08c306d33a197aba816a2"
+#define LASTFM_API_KEY @""
+#define LASTFM_SHARED_SECRET @""
 #define LASTFM_API_URL @"http://ws.audioscrobbler.com/2.0/?method=artist.getinfo&artist"
 
 

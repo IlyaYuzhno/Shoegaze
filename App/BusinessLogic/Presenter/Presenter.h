@@ -8,6 +8,9 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 #import "BubbleView.h"
+#import <sys/utsname.h>
+#import "CheckDeviceModel.h"
+
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -21,6 +24,9 @@ NS_ASSUME_NONNULL_BEGIN
 +(UIView *) setStartBubbleView: (UIView *)view trackLabel:(UILabel *)tracklabel controller:(UIViewController *)controller;
 +(void)closeBubbleButtonPressed:(UIButton *)sender;
 +(UIImageView *) setArtistImageView: (UIImageView *)view controller:(UIViewController *)controller;
+@property (strong, nonatomic) NSString *model;
+
+
 
 @end
 

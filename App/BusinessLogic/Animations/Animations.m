@@ -7,6 +7,10 @@
 
 #import "Animations.h"
 
+#define iPhone11SaveLabelCenter CGPointMake(CGRectGetMaxX(tracklabel.frame) - 180, CGRectGetMinY(tracklabel.frame) - 110);
+#define iPhoneSESaveLabelCenter CGPointMake(CGRectGetMinX(tracklabel.frame) + 200, CGRectGetMinY(tracklabel.frame) - 50);
+
+
 @implementation Animations
 
 // MARK: Save track to Favorites animation method
@@ -27,7 +31,24 @@
             button.tintColor = [UIColor colorWithRed:178/255.0 green:170/255.0 blue:156/255.0 alpha:0.2];
             
         } completion:^(BOOL finished){
-            label.center = CGPointMake(CGRectGetMaxX(tracklabel.frame) - 180, CGRectGetMinY(tracklabel.frame) - 110);
+            
+            //TO DO - add check real device
+            
+            
+            //Simulator device check
+            NSString *simulatorDevice = NSProcessInfo.processInfo.environment[@"SIMULATOR_DEVICE_NAME"];
+            
+            // iPhone SE
+            if ([simulatorDevice isEqualToString:@"iPhone SE (2nd generation)"] || [simulatorDevice isEqualToString:@"iPhone 8"] || [simulatorDevice isEqualToString:@"iPhone 7"] || [simulatorDevice isEqualToString:@"iPhone 6"] || [simulatorDevice isEqualToString:@"iPhone 6S"] ) {
+                
+                label.center = iPhoneSESaveLabelCenter;
+            }
+            
+            // iPhone 11
+            if ([simulatorDevice isEqualToString:@"iPhone 11"] || [simulatorDevice isEqualToString:@"iPhone 12"] || [simulatorDevice isEqualToString:@"iPhone X"]) {
+                
+                label.center = iPhone11SaveLabelCenter;
+            }
         }];
     }];
 }

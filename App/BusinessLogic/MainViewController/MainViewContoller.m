@@ -16,7 +16,6 @@
 @property (strong, nonatomic) VisualizerView *visualizer;
 @property (strong, nonatomic) UIView *backgroundView;
 @property (strong, nonatomic) UIButton *button;
-@property (strong, nonatomic) NSMutableArray *savedArray;
 @property (strong, nonatomic) UIButton *favButtonView;
 @property (strong, nonatomic) UIBarButtonItem *goToFavorites;
 @property (strong, nonatomic) UIButton *bugrMenuButtonView;
@@ -29,6 +28,9 @@
 @property (nonatomic, strong) UILabel *saveLabel;
 @property (strong, nonatomic) UIView *startInfoBubbleView;
 @property (strong, nonatomic) CheckConnection *reach;
+@property (strong, nonatomic) FavoritesTableViewController *favoritesViewController;
+@property (strong, nonatomic) NSMutableArray *trackNamesArray;
+
 
 @end
 
@@ -40,13 +42,16 @@
     //Check internet connection
     [self checkConnection];
     
+    //Set self.view
     self.view.backgroundColor = [UIColor whiteColor];
     self.navigationController.navigationBar.prefersLargeTitles = YES;
-    _savedArray = [NSMutableArray new];
+    _trackNamesArray = [NSMutableArray new];
     
-    // Get favorites tracks data from UserDefaults
-    [self getFavoritesData];
+    
+    // Check if favorites tracks data from UserDefaults exists
+    [SavedTracksStorage checkFavoritesData];
 
+    
     // Set visualizer background view
     self.backgroundView = [[UIView alloc] initWithFrame:self.view.frame];
     [_backgroundView setAutoresizingMask:UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth];
@@ -169,8 +174,8 @@
     _trackLabel.text = name;
     
     // Get artist name and track name from trackLabel text to search image
-    NSString *artistName = [_trackLabel.text componentsSeparatedByString:@" -"][0];
-    NSString *trackName = [_trackLabel.text componentsSeparatedByString:@"- "][1];
+    //NSString *artistName = [_trackLabel.text componentsSeparatedByString:@" -"][0];
+    //NSString *trackName = [_trackLabel.text componentsSeparatedByString:@"- "][1];
     
     //Download artist image from LastFM - currently doesn't work
     //[self getImageFromLastFM:artistName imageView:_artistImageView];
@@ -199,23 +204,26 @@
 // MARK: Track Label tapped method - Save track name to Defaults and animate labels
 -(void) labelTapped {
     
-    [_savedArray addObject:_trackLabel.text];
+    // Add track name to global storage
+    [_trackNamesArray addObject:_trackLabel.text];
+    [[SavedTracksStorage sharedInstance].savedTracks addObjectsFromArray:_trackNamesArray];
     
-    [[NSUserDefaults standardUserDefaults] setObject:_savedArray forKey:@"Favorites"];
+    //Save global storage to UserDefaults
+    [[NSUserDefaults standardUserDefaults] setObject:[SavedTracksStorage sharedInstance].savedTracks forKey:@"Favorites"];
     
-    //MARK: Animate Track label when double tapped
+    //Animate Track label when double tapped
     [Animations animateTrackLabel:_trackLabel];
     
-    // MARK: Save Track to Favorites animation method
+    //Save Track to Favorites animation method
     [Animations animateSaveTrack:_saveLabel favButton:_favButtonView trackLabel:_trackLabel controller:self];
 }
 
 
 // MARK: Go To Favorites View Button tapped method
 -(void) favButtonPressed {
-   
-    FavoritesTableViewController *favoritesViewController = [[FavoritesTableViewController alloc] init];
-    [self.navigationController showViewController:favoritesViewController sender:self];
+    
+    _favoritesViewController = [[FavoritesTableViewController alloc] init];
+    [self.navigationController showViewController:_favoritesViewController sender:self];
     
 }
 
@@ -281,17 +289,6 @@
 }
 
 
-//MARK: Get Favorites Data from UserDefaults method
--(void) getFavoritesData {
-    NSArray *array = [[NSUserDefaults standardUserDefaults] objectForKey:@"Favorites"];
-    if (!array) {
-        [[NSUserDefaults standardUserDefaults] setObject:_savedArray forKey:@"Favorites"];
-    } else {
-        [_savedArray addObjectsFromArray:array];
-    }
-}
-
-
 //MARK: Show or not show start info Bubble View animated
 - (void)showBubbleInfoViewIfNeeded
 {
@@ -305,6 +302,7 @@
 - (void)hideBubble {
     [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"first_start"];
     _startInfoBubbleView.hidden = YES;
+    [_startInfoBubbleView removeFromSuperview];
 }
 
 //MARK: Check internet connection availability
@@ -337,6 +335,11 @@
     [[NSNotificationCenter defaultCenter] removeObserver:self];
     [_reach stopNotifier];
 }
+
+@end
+
+
+
 
 
 
@@ -373,5 +376,3 @@
 
 }
 */
-
-@end

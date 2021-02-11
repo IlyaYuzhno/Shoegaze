@@ -10,7 +10,6 @@
 @interface FavoritesTableViewController ()
 
 @property (strong, nonatomic) NSMutableArray *favoritesArray;
-
 @property (nonatomic, strong) NSArray *filteredArray;
 @property (nonatomic, strong) UISearchBar *searchBar;
 
@@ -23,24 +22,28 @@
     
     self.title = @"❤️❤️❤️";
     
+    //MARK: Create local data source from global
+    //more secure I think :)
     _favoritesArray = [NSMutableArray new];
-    _favoritesArray = [[NSUserDefaults standardUserDefaults] objectForKey:@"Favorites"];
+    _favoritesArray = [[[NSUserDefaults standardUserDefaults] objectForKey:@"Favorites"] mutableCopy];
     _filteredArray = _favoritesArray;
     
     //MARK: Add SearchBar
     _searchBar = [[UISearchBar alloc] initWithFrame:CGRectMake(0, 0, 320, 44)];
     _searchBar.delegate = self;
     self.tableView.tableHeaderView = _searchBar;
+    _searchBar.placeholder = @"Search shoegaze...";
     
     self.tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
     
     [self.tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:@"favoritesCell"];
     
+    self.navigationItem.rightBarButtonItem = self.editButtonItem;
+    
 }
 
 #pragma mark - Table view data source
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-
     return _filteredArray.count;
 }
 
@@ -81,17 +84,27 @@
 }
 */
 
-/*
-// Override to support editing the table view.
+
+//MARK: Edit rows and update Global Storage
 - (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
     if (editingStyle == UITableViewCellEditingStyleDelete) {
-        // Delete the row from the data source
+        
+        //Delete the row from the local data source
+        [_favoritesArray removeObjectAtIndex:indexPath.row];
+        
+        //Delete row from the global storage
+        [[SavedTracksStorage sharedInstance].savedTracks removeObjectAtIndex:indexPath.row];
+        
+        //Save updated global storage to UserDefaults
+        [[NSUserDefaults standardUserDefaults] setObject:[SavedTracksStorage sharedInstance].savedTracks forKey:@"Favorites"];
+        
+        _filteredArray = _favoritesArray;
+        
         [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
-    } else if (editingStyle == UITableViewCellEditingStyleInsert) {
-        // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
-    }   
+
+    }
 }
-*/
+
 
 /*
 // Override to support rearranging the table view.
