@@ -24,7 +24,9 @@ NS_ASSUME_NONNULL_BEGIN
 +(UIView *) setStartBubbleView: (UIView *)view trackLabel:(UILabel *)tracklabel controller:(UIViewController *)controller;
 +(void)closeBubbleButtonPressed:(UIButton *)sender;
 +(UIImageView *) setArtistImageView: (UIImageView *)view controller:(UIViewController *)controller;
-@property (strong, nonatomic) NSString *model;
++(UIView *) setArtistInfoView:(UIView *)view text:(NSMutableString *)text;
++(void) blurEffect:(UIView *)view controller:(UITableViewController *)controller;
++(void) removeBlurEffect;
 
 
 

@@ -39,6 +39,8 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     
+  
+    
     //Check internet connection
     [self checkConnection];
     
@@ -172,10 +174,6 @@
     
     //Show artist and track names
     _trackLabel.text = name;
-    
-    // Get artist name and track name from trackLabel text to search image
-    //NSString *artistName = [_trackLabel.text componentsSeparatedByString:@" -"][0];
-    //NSString *trackName = [_trackLabel.text componentsSeparatedByString:@"- "][1];
     
     //Download artist image from LastFM - currently doesn't work
     //[self getImageFromLastFM:artistName imageView:_artistImageView];
@@ -335,6 +333,22 @@
     [[NSNotificationCenter defaultCenter] removeObserver:self];
     [_reach stopNotifier];
 }
+
+
+
+-(void) printFonts {
+    
+    for (NSString *familyName in [UIFont familyNames]){
+        NSLog(@"Family name: %@", familyName);
+        for (NSString *fontName in [UIFont fontNamesForFamilyName:familyName]) {
+            NSLog(@"--Font name: %@", fontName);
+        }
+    }
+    
+    
+}
+
+
 
 @end
 

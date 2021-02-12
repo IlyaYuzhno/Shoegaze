@@ -13,6 +13,9 @@
 #define iPhone11SaveLabelCenter CGPointMake(CGRectGetMaxX(tracklabel.frame) - 180, CGRectGetMinY(tracklabel.frame) - 110);
 #define iPhoneSESaveLabelCenter CGPointMake(CGRectGetMinX(tracklabel.frame) + 200, CGRectGetMinY(tracklabel.frame) - 50);
 
+static UIVisualEffect *blurEffect;
+static UIVisualEffectView *visualEffectView;
+
 @implementation Presenter
 
 
@@ -217,9 +220,116 @@
     
 }
 
+//MARK: Set Artist Info View loaded from LastFM API
++(UIView *) setArtistInfoView:(UIView *)view text:(NSMutableString *)text {
+    
+    //Check real device model
+    NSString *model = [CheckDeviceModel deviceName];
+    
+    
+    //Set view
+    
+    //MARK: Real devices model check
+    /*
+    // iPhone model check
+     if ([model isEqualToString:@"iPhone SE (2nd generation)"] || [model isEqualToString:@"iPhone 8"] || [model isEqualToString:@"iPhone 7"] || [model isEqualToString:@"iPhone 6"] || [model isEqualToString:@"iPhone 6S"] ) {
+         
+     view = [[UIView alloc] initWithFrame:CGRectMake([UIScreen mainScreen].bounds.origin.x + 10, [UIScreen mainScreen].bounds.origin.y + 30, [UIScreen mainScreen].bounds.size.width - 20, [UIScreen mainScreen].bounds.size.height - 180)];
+     } else {
+         
+     view = [[UIView alloc] initWithFrame:CGRectMake([UIScreen mainScreen].bounds.origin.x + 10, [UIScreen mainScreen].bounds.origin.y + 50, [UIScreen mainScreen].bounds.size.width - 20, [UIScreen mainScreen].bounds.size.height - 300)];
+     }
+    */
+    
+    
+    //MARK: Simulator devices check - to delete
+    
+    NSString *simulatorDevice = NSProcessInfo.processInfo.environment[@"SIMULATOR_DEVICE_NAME"];
+    
+    // iPhone model check
+    if ([simulatorDevice isEqualToString:@"iPhone SE (2nd generation)"] || [simulatorDevice isEqualToString:@"iPhone 8"] || [simulatorDevice isEqualToString:@"iPhone 7"] || [simulatorDevice isEqualToString:@"iPhone 6"] || [simulatorDevice isEqualToString:@"iPhone 6S"] ) {
+        
+        view = [[UIView alloc] initWithFrame:CGRectMake([UIScreen mainScreen].bounds.origin.x + 10, [UIScreen mainScreen].bounds.origin.y + 30, [UIScreen mainScreen].bounds.size.width - 20, [UIScreen mainScreen].bounds.size.height - 180)];
+    } else {
+        
+        view = [[UIView alloc] initWithFrame:CGRectMake([UIScreen mainScreen].bounds.origin.x + 10, [UIScreen mainScreen].bounds.origin.y + 70, [UIScreen mainScreen].bounds.size.width - 20, [UIScreen mainScreen].bounds.size.height - 300)];
+        
+    }
+ 
+    view.backgroundColor = [UIColor whiteColor];
+    view.layer.cornerRadius = 8;
+    view.clipsToBounds = YES;
+    
+    //Set title label
+    UILabel *viewTitle = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, view.bounds.size.width, 40)];
+    viewTitle.backgroundColor = [UIColor clearColor];
+    viewTitle.text = @"BAND INFO:";
+    [viewTitle setFont:[UIFont fontWithName:@"HelveticaNeue-Bold" size:22.0f]];
+    viewTitle.layer.cornerRadius = 8;
+    viewTitle.clipsToBounds = YES;
+    [view addSubview:viewTitle];
+    
+    
+    //Set TextView
+    UITextView *infoTextView = [[UITextView alloc] initWithFrame:CGRectMake(0, CGRectGetHeight(viewTitle.frame), view.bounds.size.width, view.bounds.size.height - 90)];
+    infoTextView.text = text;
+    infoTextView.backgroundColor = [UIColor clearColor];
+    infoTextView.editable = NO;
+    [infoTextView setFont:[UIFont fontWithName:@"HelveticaNeue" size:22.0f]];
+    [view addSubview:infoTextView];
+    
+
+    //Set Close button
+    UIButton *closeButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    [closeButton setFrame:CGRectMake(0, view.bounds.size.height - 50, view.bounds.size.width, 50)];
+    [closeButton setTitle:@"CLOSE" forState:UIControlStateNormal];
+    closeButton.backgroundColor = [UIColor greenColor];
+    closeButton.layer.cornerRadius = 8;
+    
+    [closeButton addTarget:self action:@selector(closeArtistInfoButtonPressed:) forControlEvents:UIControlEventTouchUpInside];
+    
+    [view addSubview:closeButton];
+    
+    
+    
+    
+    return view;
+}
+
+//MARK: Artist Info View Close button pressed method
++(void)closeArtistInfoButtonPressed:(UIButton *)sender {
+        
+    //Send notification when Close Info pressed
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"closeArtistInfoButtonPressed" object:nil userInfo:nil];
+    
+}
+
+
+
++(void) blurEffect:(UIView *)view controller:(UITableViewController *)controller {
+    
+    blurEffect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleProminent];
+    visualEffectView = [[UIVisualEffectView alloc] initWithEffect:blurEffect];
+
+    [[visualEffectView contentView] addSubview:view];
+    visualEffectView.frame = controller.view.bounds;
+
+    [controller.view addSubview:visualEffectView];
+    
+    
+}
+
++(void) removeBlurEffect {
+    
+    [visualEffectView removeFromSuperview];
+    
+}
+
+
 
 
 //MARK: Set Artist Image View loaded from LastFM API - !!!currently doesn't work!!!
+/*
 +(UIImageView *) setArtistImageView: (UIImageView *)view controller:(UIViewController *)controller {
     
     view = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, (controller.view.bounds.size.width - 10), 250)];
@@ -230,6 +340,10 @@
     return view;
     
 }
+*/
+
+
+
 
 
 @end

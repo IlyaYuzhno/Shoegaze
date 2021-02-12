@@ -12,7 +12,7 @@ NS_ASSUME_NONNULL_BEGIN
 @interface APIManager : NSObject
 
 + (instancetype)sharedInstance;
-- (void)artistWithRequest:(NSString *)request withCompletion:(void (^)(NSDictionary *imgUrl))completion;
+- (void)artistWithRequest:(NSString *)request withCompletion:(void (^)(NSMutableString *info))completion;
 
 
 

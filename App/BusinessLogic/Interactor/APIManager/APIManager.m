@@ -6,7 +6,7 @@
 //
 
 #import "APIManager.h"
-#define LASTFM_API_KEY @""
+#define LASTFM_API_KEY @"8a4e0e0ec25aeb23c1f4f6b54c6ec35f"
 #define LASTFM_SHARED_SECRET @""
 #define LASTFM_API_URL @"http://ws.audioscrobbler.com/2.0/?method=artist.getinfo&artist"
 
@@ -26,7 +26,7 @@
 
 
 //MARK: Get artist from laded raw data
-- (void)artistWithRequest:(NSString *)request withCompletion:(void (^)(NSDictionary *imgUrl))completion {
+- (void)artistWithRequest:(NSString *)request withCompletion:(void (^)(NSMutableString *info))completion {
     
     // Initial URL string
     NSString *urlString = [NSString stringWithFormat:@"%@=%@&api_key=%@&format=json", LASTFM_API_URL, request, LASTFM_API_KEY];
@@ -37,14 +37,10 @@
     [self load:path withCompletion:^(id  _Nullable result) {
         NSDictionary *response = result;
         if (response) {
-            //NSDictionary *json = [[response valueForKey:@"artist"] valueForKey:@"image"];
-            NSMutableArray *json = [[response valueForKey:@"artist"] valueForKey:@"image"];
-            NSMutableArray *array = [NSMutableArray new];
-            [array addObject:json[2]];
-            //NSString *imgUrl = [array valueForKey:@"#text"];
-            NSDictionary *imgUrl = [array firstObject];
+            NSDictionary *json = [[response valueForKey:@"artist"] valueForKey:@"bio"];
+            NSMutableString *info = [json objectForKey:@"summary"];
             dispatch_async(dispatch_get_main_queue(), ^{
-                completion(imgUrl);
+                completion(info);
             });
         }
     }];

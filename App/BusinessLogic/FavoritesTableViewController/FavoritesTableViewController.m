@@ -12,6 +12,8 @@
 @property (strong, nonatomic) NSMutableArray *favoritesArray;
 @property (nonatomic, strong) NSArray *filteredArray;
 @property (nonatomic, strong) UISearchBar *searchBar;
+@property (nonatomic, strong) NSString *artistName;
+@property (nonatomic, strong) UIView *artistInfoView;
 
 @end
 
@@ -34,11 +36,21 @@
     self.tableView.tableHeaderView = _searchBar;
     _searchBar.placeholder = @"Search shoegaze...";
     
+    
+    //MARK: Create info view
+    _artistInfoView = [[UIView alloc] init];
+    
+    
     self.tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
     
     [self.tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:@"favoritesCell"];
     
     self.navigationItem.rightBarButtonItem = self.editButtonItem;
+    
+    //Subscribe to notifications
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(closeArtistInfoView) name: @"closeArtistInfoButtonPressed" object:nil];
+    
+    
     
 }
 
@@ -61,10 +73,10 @@
 - (void)searchBar:(UISearchBar *)searchBar textDidChange:(NSString *)searchText {
     
     if (searchText.length != 0) {
-            NSPredicate *predicate = [NSPredicate predicateWithBlock:^BOOL(NSString *evaluatedString, NSDictionary *bindings) {
-                return [evaluatedString containsString:searchText];
-            }];
-            self.filteredArray = [self.favoritesArray filteredArrayUsingPredicate:predicate];
+        NSPredicate *predicate = [NSPredicate predicateWithBlock:^BOOL(NSString *evaluatedString, NSDictionary *bindings) {
+            return [evaluatedString containsString:searchText];
+        }];
+        self.filteredArray = [self.favoritesArray filteredArrayUsingPredicate:predicate];
     }
     else {
         self.filteredArray = self.favoritesArray;
@@ -72,17 +84,6 @@
     [self.tableView reloadData];
     
 }
-
-
-
-
-/*
-// Override to support conditional editing of the table view.
-- (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
-    // Return NO if you do not want the specified item to be editable.
-    return YES;
-}
-*/
 
 
 //MARK: Edit rows and update Global Storage
@@ -101,33 +102,66 @@
         _filteredArray = _favoritesArray;
         
         [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
-
+        
     }
 }
 
-
-/*
-// Override to support rearranging the table view.
-- (void)tableView:(UITableView *)tableView moveRowAtIndexPath:(NSIndexPath *)fromIndexPath toIndexPath:(NSIndexPath *)toIndexPath {
+//MARK: Tap cell to read artist info
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    
+    UITableViewCell *cell = [tableView cellForRowAtIndexPath:indexPath];
+    
+    // Get artist name and track name from trackLabel text to search info
+    NSString *artistName = [cell.textLabel.text componentsSeparatedByString:@" -"][0];
+    //NSString *trackName = [_trackLabel.text componentsSeparatedByString:@"- "][1];
+    
+    //Get artist info
+    [self getInfoFromLastFM:artistName];
+    
 }
-*/
 
-/*
-// Override to support conditional rearranging of the table view.
-- (BOOL)tableView:(UITableView *)tableView canMoveRowAtIndexPath:(NSIndexPath *)indexPath {
-    // Return NO if you do not want the item to be re-orderable.
-    return YES;
+//MARK: Get artist info from LastFM API via APIManager
+- (void) getInfoFromLastFM:(NSString *)artistName {
+    
+    [[APIManager sharedInstance] artistWithRequest:artistName withCompletion:^(NSMutableString *info) {
+        if (!info || [info isEqualToString:@""]) {
+            
+            NSMutableString *noInfoLoaded =[NSMutableString stringWithString:@"SEEMS LIKE NO INFO ABOUT THIS BAND YET..."];
+            self->_artistInfoView = [Presenter setArtistInfoView:self->_artistInfoView text:noInfoLoaded];
+            //add blur effect
+            [Presenter blurEffect:self->_artistInfoView controller:self];
+            //show info view
+            [self.view addSubview:self->_artistInfoView];
+    
+        } else {
+            
+            // INFO exist
+            NSMutableString *text = [NSMutableString stringWithString:[info componentsSeparatedByString:@" <"][0]]; // remove a href from info
+            self->_artistInfoView = [Presenter setArtistInfoView:self->_artistInfoView text:text];
+            //add blur effect
+            [Presenter blurEffect:self->_artistInfoView controller:self];
+            //show info view
+            [self.view addSubview:self->_artistInfoView];
+            
+        }
+    }];
+    
 }
-*/
 
-/*
-#pragma mark - Navigation
-
-// In a storyboard-based application, you will often want to do a little preparation before navigation
-- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
-    // Get the new view controller using [segue destinationViewController].
-    // Pass the selected object to the new view controller.
+//MARK: Close Artist Info View and remove blur
+-(void)closeArtistInfoView {
+    
+    [Presenter removeBlurEffect];
+    [_artistInfoView removeFromSuperview];
+    
 }
-*/
+
+
+//MARK: Remove observers
+- (void)dealloc
+{
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+}
+
 
 @end
