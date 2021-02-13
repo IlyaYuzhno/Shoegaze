@@ -175,9 +175,6 @@
     //Show artist and track names
     _trackLabel.text = name;
     
-    //Download artist image from LastFM - currently doesn't work
-    //[self getImageFromLastFM:artistName imageView:_artistImageView];
-           
 }
 
 
@@ -207,7 +204,10 @@
     [[SavedTracksStorage sharedInstance].savedTracks addObjectsFromArray:_trackNamesArray];
     
     //Save global storage to UserDefaults
-    [[NSUserDefaults standardUserDefaults] setObject:[SavedTracksStorage sharedInstance].savedTracks forKey:@"Favorites"];
+    dispatch_queue_t queue = dispatch_get_global_queue(QOS_CLASS_DEFAULT, 0);
+    dispatch_async(queue, ^{
+        [[NSUserDefaults standardUserDefaults] setObject:[SavedTracksStorage sharedInstance].savedTracks forKey:@"Favorites"];
+    });
     
     //Animate Track label when double tapped
     [Animations animateTrackLabel:_trackLabel];
@@ -220,7 +220,12 @@
 // MARK: Go To Favorites View Button tapped method
 -(void) favButtonPressed {
     
-    _favoritesViewController = [[FavoritesTableViewController alloc] init];
+    dispatch_queue_t queue = dispatch_get_global_queue(QOS_CLASS_USER_INTERACTIVE, 0);
+    dispatch_sync(queue, ^{
+        self->_favoritesViewController = [[FavoritesTableViewController alloc] init];
+    });
+
+    //_favoritesViewController = [[FavoritesTableViewController alloc] init];
     [self.navigationController showViewController:_favoritesViewController sender:self];
     
 }
