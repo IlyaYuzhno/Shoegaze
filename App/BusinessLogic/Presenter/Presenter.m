@@ -9,20 +9,30 @@
 
 
 #define iPhoneSEPlayButtonFrame CGRectMake ((controller.view.bounds.size.width / 2) - 100, [UIScreen mainScreen].bounds.size.height - 250, 200, 200);
-#define iPhone11PlayButtonFrame CGRectMake ((controller.view.bounds.size.width / 2) - 100, CGRectGetMaxY(label.frame) + 200, 200, 200);
-#define iPhone11SaveLabelCenter CGPointMake(CGRectGetMaxX(tracklabel.frame) - 180, CGRectGetMinY(tracklabel.frame) - 110);
+#define iPhone11PlayButtonFrame CGRectMake ((controller.view.bounds.size.width / 2) - 100, CGRectGetMaxY(label.frame) + 240, 200, 200);
+#define iPhone11SaveLabelCenter CGPointMake(CGRectGetMaxX(tracklabel.frame) - 180, CGRectGetMinY(tracklabel.frame) - 80);
 #define iPhoneSESaveLabelCenter CGPointMake(CGRectGetMinX(tracklabel.frame) + 200, CGRectGetMinY(tracklabel.frame) - 50);
 
 static UIVisualEffect *blurEffect;
 static UIVisualEffectView *visualEffectView;
+NSString *model;
+NSString *simulatorDevice;
+
 
 @implementation Presenter
 
+//Check device model in class init from MainViewController
++ (void)initialize {
+  if (self == [Presenter self]) {
+      model = [CheckDeviceModel deviceName];
+      simulatorDevice = NSProcessInfo.processInfo.environment[@"SIMULATOR_DEVICE_NAME"];
+  }
+}
 
 //MARK: Set Track Label
-+(UILabel *) setTrackLabel:(UILabel *)label controller:(UIViewController *)controller {
++(UILabel *) setTrackLabel:(UILabel *)label y:(int)y controller:(UIViewController *)controller {
         
-    label = [[UILabel alloc] initWithFrame:CGRectMake(10, ([UIScreen mainScreen].bounds.size.height / 2) - 200, [UIScreen mainScreen].bounds.size.width - 20, 140)];
+    label = [[UILabel alloc] initWithFrame:CGRectMake(10, y, [UIScreen mainScreen].bounds.size.width - 20, 140)];
     label.textColor = [UIColor whiteColor];
     label.numberOfLines = 0;
     label.adjustsFontSizeToFitWidth = NO;
@@ -30,7 +40,6 @@ static UIVisualEffectView *visualEffectView;
     label.lineBreakMode = NSLineBreakByWordWrapping;
     label.textAlignment = NSTextAlignmentCenter;
     [label setFont:[UIFont systemFontOfSize:36]];
-    
     label.userInteractionEnabled = YES;
     return label;
 
@@ -38,12 +47,6 @@ static UIVisualEffectView *visualEffectView;
 
 //MARK: Set Play/Pause Button
 +(UIButton *) setPlayButton:(UIButton *)button trackLabel:(UILabel *)label controller:(UIViewController *)controller {
-    
-    //Check real device model
-    NSString *model = [CheckDeviceModel deviceName];
-    
-    //Check simulator device model
-    NSString *simulatorDevice = NSProcessInfo.processInfo.environment[@"SIMULATOR_DEVICE_NAME"];
     
     button = [UIButton buttonWithType:UIButtonTypeCustom];
 
@@ -115,11 +118,7 @@ static UIVisualEffectView *visualEffectView;
 
 //MARK: Set Save Track pop-up label
 +(UILabel *) setSaveTrackLabel:(UILabel *)label trackLabel:(UILabel *)tracklabel controller:(UIViewController *)controller {
-    
-    //Check real device model
-    NSString *model = [CheckDeviceModel deviceName];
-    
-    
+ 
     label = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 100, 30)];
     
     //MARK: Real devices model check
@@ -138,8 +137,6 @@ static UIVisualEffectView *visualEffectView;
     
     //MARK: Simulator devices check - to delete
     
-    NSString *simulatorDevice = NSProcessInfo.processInfo.environment[@"SIMULATOR_DEVICE_NAME"];
-    
     // iPhone SE
     if ([simulatorDevice isEqualToString:@"iPhone SE (2nd generation)"] || [simulatorDevice isEqualToString:@"iPhone 8"] || [simulatorDevice isEqualToString:@"iPhone 7"] || [simulatorDevice isEqualToString:@"iPhone 6"] || [simulatorDevice isEqualToString:@"iPhone 6S"] ) {
         
@@ -149,7 +146,6 @@ static UIVisualEffectView *visualEffectView;
         
         label.center = iPhone11SaveLabelCenter;
     }
-    
     
     label.text = @"SAVED";
     label.textColor = [UIColor systemPinkColor];
@@ -162,13 +158,7 @@ static UIVisualEffectView *visualEffectView;
 
 //MARK: Set one-time start info Bubble View
 +(UIView *) setStartBubbleView: (UIView *)view trackLabel:(UILabel *)tracklabel controller:(UIViewController *)controller {
-    
-    //Check real device model
-    NSString *model = [CheckDeviceModel deviceName];
-    
-    
-    //Set view
-    
+ 
     //MARK: Real devices model check
     /*
     // iPhone model check
@@ -184,18 +174,15 @@ static UIVisualEffectView *visualEffectView;
     
     //MARK: Simulator devices check - to delete
     
-    NSString *simulatorDevice = NSProcessInfo.processInfo.environment[@"SIMULATOR_DEVICE_NAME"];
-    
     // iPhone model check
     if ([simulatorDevice isEqualToString:@"iPhone SE (2nd generation)"] || [simulatorDevice isEqualToString:@"iPhone 8"] || [simulatorDevice isEqualToString:@"iPhone 7"] || [simulatorDevice isEqualToString:@"iPhone 6"] || [simulatorDevice isEqualToString:@"iPhone 6S"] ) {
         
-        view= [[BubbleView alloc] initWithFrame:CGRectMake(110, CGRectGetMinY(tracklabel.frame) + 115, 300, 250)];
+        view= [[BubbleView alloc] initWithFrame:CGRectMake(110, CGRectGetMinY(tracklabel.frame) + 140, 300, 250)];
     } else {
         
         view= [[BubbleView alloc] initWithFrame:CGRectMake(140, CGRectGetMinY(tracklabel.frame) + 115, 300, 250)];
     }
     
-
     view.backgroundColor = [UIColor clearColor];
     
     //Set Close button
@@ -221,14 +208,8 @@ static UIVisualEffectView *visualEffectView;
 }
 
 //MARK: Set Artist Info View loaded from LastFM API
-+(UIView *) setArtistInfoView:(UIView *)view text:(NSMutableString *)text {
-    
-    //Check real device model
-    NSString *model = [CheckDeviceModel deviceName];
-    
-    
-    //Set view
-    
++(UIView *) setArtistInfoView:(UIView *)view text:(NSMutableString *)text viewHeight:(int) height{
+
     //MARK: Real devices model check
     /*
     // iPhone model check
@@ -237,22 +218,20 @@ static UIVisualEffectView *visualEffectView;
      view = [[UIView alloc] initWithFrame:CGRectMake([UIScreen mainScreen].bounds.origin.x + 10, [UIScreen mainScreen].bounds.origin.y + 30, [UIScreen mainScreen].bounds.size.width - 20, [UIScreen mainScreen].bounds.size.height - 180)];
      } else {
          
-     view = [[UIView alloc] initWithFrame:CGRectMake([UIScreen mainScreen].bounds.origin.x + 10, [UIScreen mainScreen].bounds.origin.y + 50, [UIScreen mainScreen].bounds.size.width - 20, [UIScreen mainScreen].bounds.size.height - 300)];
+     view = [[UIView alloc] initWithFrame:CGRectMake([UIScreen mainScreen].bounds.origin.x + 10, [UIScreen mainScreen].bounds.origin.y + 70, [UIScreen mainScreen].bounds.size.width - 20, [UIScreen mainScreen].bounds.size.height - height)];
      }
     */
     
     
     //MARK: Simulator devices check - to delete
-    
-    NSString *simulatorDevice = NSProcessInfo.processInfo.environment[@"SIMULATOR_DEVICE_NAME"];
-    
     // iPhone model check
     if ([simulatorDevice isEqualToString:@"iPhone SE (2nd generation)"] || [simulatorDevice isEqualToString:@"iPhone 8"] || [simulatorDevice isEqualToString:@"iPhone 7"] || [simulatorDevice isEqualToString:@"iPhone 6"] || [simulatorDevice isEqualToString:@"iPhone 6S"] ) {
         
         view = [[UIView alloc] initWithFrame:CGRectMake([UIScreen mainScreen].bounds.origin.x + 10, [UIScreen mainScreen].bounds.origin.y + 30, [UIScreen mainScreen].bounds.size.width - 20, [UIScreen mainScreen].bounds.size.height - 180)];
-    } else {
         
-        view = [[UIView alloc] initWithFrame:CGRectMake([UIScreen mainScreen].bounds.origin.x + 10, [UIScreen mainScreen].bounds.origin.y + 70, [UIScreen mainScreen].bounds.size.width - 20, [UIScreen mainScreen].bounds.size.height - 300)];
+    } else {
+               
+        view = [[UIView alloc] initWithFrame:CGRectMake([UIScreen mainScreen].bounds.origin.x + 10, [UIScreen mainScreen].bounds.origin.y + 70, [UIScreen mainScreen].bounds.size.width - 20, [UIScreen mainScreen].bounds.size.height - height)];
         
     }
  
@@ -289,10 +268,7 @@ static UIVisualEffectView *visualEffectView;
     [closeButton addTarget:self action:@selector(closeArtistInfoButtonPressed:) forControlEvents:UIControlEventTouchUpInside];
     
     [view addSubview:closeButton];
-    
-    
-    
-    
+
     return view;
 }
 
@@ -304,8 +280,7 @@ static UIVisualEffectView *visualEffectView;
     
 }
 
-
-
+//MARK: Set Blur effect
 +(void) blurEffect:(UIView *)view controller:(UITableViewController *)controller {
     
     blurEffect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleProminent];
@@ -319,31 +294,12 @@ static UIVisualEffectView *visualEffectView;
     
 }
 
+//MARK: Remove Blur effect
 +(void) removeBlurEffect {
     
     [visualEffectView removeFromSuperview];
     
 }
-
-
-
-
-//MARK: Set Artist Image View loaded from LastFM API - !!!currently doesn't work!!!
-/*
-+(UIImageView *) setArtistImageView: (UIImageView *)view controller:(UIViewController *)controller {
-    
-    view = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, (controller.view.bounds.size.width - 10), 250)];
-    view.center = CGPointMake(controller.view.frame.size.width / 2, (controller.view.frame.size.height / 2) - 200);
-    view.layer.cornerRadius = 5;
-    view.backgroundColor = [UIColor redColor];
-    
-    return view;
-    
-}
-*/
-
-
-
 
 
 @end

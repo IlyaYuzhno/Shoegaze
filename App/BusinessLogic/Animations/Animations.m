@@ -7,7 +7,7 @@
 
 #import "Animations.h"
 
-#define iPhone11SaveLabelCenter CGPointMake(CGRectGetMaxX(tracklabel.frame) - 180, CGRectGetMinY(tracklabel.frame) - 110);
+#define iPhone11SaveLabelCenter CGPointMake(CGRectGetMaxX(tracklabel.frame) - 180, CGRectGetMinY(tracklabel.frame) - 80);
 #define iPhoneSESaveLabelCenter CGPointMake(CGRectGetMinX(tracklabel.frame) + 200, CGRectGetMinY(tracklabel.frame) - 50);
 
 
@@ -32,10 +32,23 @@
             
         } completion:^(BOOL finished){
             
-            //TO DO - add check real device
+        
+            //MARK: Real devices model check
+            /*
+            /// iPhone model check
+             //Check real device model
+             NSString *model = [CheckDeviceModel deviceName];
+             if ([model isEqualToString:@"iPhone SE (2nd generation)"] || [model isEqualToString:@"iPhone 8"] || [model isEqualToString:@"iPhone 7"] || [model isEqualToString:@"iPhone 6"] || [model isEqualToString:@"iPhone 6S"] ) {
+                 
+                 label.center = iPhoneSESaveLabelCenter;
+                 
+             } else {
+                 
+                  label.center = iPhone11SaveLabelCenter;
+             }
+            */
             
-            
-            //Simulator device check
+            //Simulator device check - to delete
             NSString *simulatorDevice = NSProcessInfo.processInfo.environment[@"SIMULATOR_DEVICE_NAME"];
             
             // iPhone SE
@@ -70,17 +83,68 @@
 
 
 //MARK: Animate Bubble View when showed
-+(void) animateBubbleView:(UIView *)bubble {
++(void) animateBubbleView:(UIView *)bubble button:(UIButton *)button {
 
-    bubble.hidden = NO;
-    bubble.alpha = 0.3;
-    [UIView animateWithDuration:0.2 animations:^{
-        [UIView modifyAnimationsWithRepeatCount:4 autoreverses: YES animations:^{
-            bubble.alpha = 1;
-        }];
-
-    } completion:NULL];
     
+    
+    //MARK: Real devices model check
+    /*
+    /// iPhone model check
+     //Check real device model
+     NSString *model = [CheckDeviceModel deviceName];
+     if ([model isEqualToString:@"iPhone SE (2nd generation)"] || [model isEqualToString:@"iPhone 8"] || [model isEqualToString:@"iPhone 7"] || [model isEqualToString:@"iPhone 6"] || [model isEqualToString:@"iPhone 6S"] ) {
+         
+     button.hidden = YES;
+     bubble.hidden = NO;
+     bubble.alpha = 0.3;
+     [UIView animateWithDuration:0.2 animations:^{
+         [UIView modifyAnimationsWithRepeatCount:2 autoreverses: YES animations:^{
+             bubble.alpha = 1;
+         }];
+     } completion:NULL];
+     
+         
+     } else {
+         
+     bubble.hidden = NO;
+     bubble.alpha = 0.3;
+     [UIView animateWithDuration:0.2 animations:^{
+         [UIView modifyAnimationsWithRepeatCount:2 autoreverses: YES animations:^{
+             bubble.alpha = 1;
+         }];
+     } completion:NULL];
+     }
+    */
+    
+    //Simulator device check - to delete
+    NSString *simulatorDevice = NSProcessInfo.processInfo.environment[@"SIMULATOR_DEVICE_NAME"];
+    
+    // iPhone SE
+    if ([simulatorDevice isEqualToString:@"iPhone SE (2nd generation)"] || [simulatorDevice isEqualToString:@"iPhone 8"] || [simulatorDevice isEqualToString:@"iPhone 7"] || [simulatorDevice isEqualToString:@"iPhone 6"] || [simulatorDevice isEqualToString:@"iPhone 6S"] ) {
+        
+        //Hide Play/Pause Button when small-screen device
+        button.hidden = YES;
+        bubble.hidden = NO;
+        bubble.alpha = 0.3;
+        [UIView animateWithDuration:0.2 animations:^{
+            [UIView modifyAnimationsWithRepeatCount:2 autoreverses: YES animations:^{
+                bubble.alpha = 1;
+            }];
+        } completion:NULL];
+    }
+    
+    // iPhone 11
+    if ([simulatorDevice isEqualToString:@"iPhone 11"] || [simulatorDevice isEqualToString:@"iPhone 12"] || [simulatorDevice isEqualToString:@"iPhone X"]) {
+        
+        bubble.hidden = NO;
+        bubble.alpha = 0.3;
+        [UIView animateWithDuration:0.2 animations:^{
+            [UIView modifyAnimationsWithRepeatCount:2 autoreverses: YES animations:^{
+                bubble.alpha = 1;
+            }];
+        } completion:NULL];
+        
+    }
     
 }
 
@@ -121,10 +185,23 @@ theAnimation.timingFunction=[CAMediaTimingFunction functionWithName:kCAMediaTimi
         aboutView.alpha = 1;
         
     } completion:NULL];
-    
-    
-    
 }
+
+//MARK: Animate Save Band Info View
+
++(void) animateBandInfoView:(UIView *)infoView {
+    
+    infoView.transform = CGAffineTransformScale(CGAffineTransformIdentity, 0.9, 0.9);
+    
+    [UIView animateWithDuration:0.1 delay:0 usingSpringWithDamping:0.7 initialSpringVelocity:0.2 options:UIViewAnimationOptionCurveLinear animations:^{
+        
+        infoView.transform = CGAffineTransformScale(CGAffineTransformIdentity, 1, 1);
+            
+    } completion:NULL];
+
+}
+
+
 
 
     

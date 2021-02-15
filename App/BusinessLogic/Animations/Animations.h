@@ -15,10 +15,12 @@ NS_ASSUME_NONNULL_BEGIN
 
 +(void) animateSaveTrack:(UILabel *)label favButton:(UIButton *)button trackLabel:(UILabel *)tracklabel controller:(UIViewController *)controller;
 +(void) animateTrackLabel:(UILabel *)label;
-+(void) animateBubbleView:(UIView *)bubble;
++(void) animateBubbleView:(UIView *)bubble button:(UIButton *)button;
 +(void) animatePlayButton:(UIButton *)button;
 +(void) animatePlayButtonTapped:(UIButton *)button;
 +(void) animateAboutView:(AboutView *)aboutView;
++(void) animateBandInfoView:(UIView *)infoView;
+
 
 @end
 

@@ -24,13 +24,11 @@
 @property (strong, nonatomic) AboutView *aboutView;
 @property (strong, nonatomic) UIVisualEffect *blurEffect;
 @property (strong, nonatomic) UIVisualEffectView *visualEffectView;
-//@property (strong, nonatomic) UIImageView *artistImageView; // for image from LastFM
 @property (nonatomic, strong) UILabel *saveLabel;
 @property (strong, nonatomic) UIView *startInfoBubbleView;
 @property (strong, nonatomic) CheckConnection *reach;
 @property (strong, nonatomic) FavoritesTableViewController *favoritesViewController;
 @property (strong, nonatomic) NSMutableArray *trackNamesArray;
-
 
 @end
 
@@ -39,20 +37,23 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     
-  
+    [Presenter initialize];
     
     //Check internet connection
     [self checkConnection];
     
+    // Check if favorites tracks data and cache in UserDefaults exists
+    [self checkStorage];
+    [self checkBandInfoCache];
+    
+    
     //Set self.view
     self.view.backgroundColor = [UIColor whiteColor];
     self.navigationController.navigationBar.prefersLargeTitles = YES;
+    
+    //Get Favorites data into local storage
     _trackNamesArray = [NSMutableArray new];
-    
-    
-    // Check if favorites tracks data from UserDefaults exists
-    [SavedTracksStorage checkFavoritesData];
-
+    _trackNamesArray = [[[NSUserDefaults standardUserDefaults] objectForKey:@"Favorites"] mutableCopy];
     
     // Set visualizer background view
     self.backgroundView = [[UIView alloc] initWithFrame:self.view.frame];
@@ -60,9 +61,15 @@
     [_backgroundView setBackgroundColor:[UIColor blackColor]];
     [self.view addSubview:_backgroundView];
     
+    //Add Menu View initially off screen
+    _menuView = [[MenuView alloc] initWithFrame:CGRectMake(-300, 100, self.view.bounds.size.width / 3, 90)];
+    _menuView.backgroundColor = [UIColor clearColor];
+    _menuView.layer.cornerRadius = 6;
+    _menuView.alpha = 0.0;
+    [self.view addSubview:_menuView];
     
     // Set track label via Presenter
-    _trackLabel = [Presenter setTrackLabel:_trackLabel controller:self];
+    _trackLabel = [Presenter setTrackLabel:_trackLabel y:CGRectGetMaxY(_menuView.frame) controller:self];
     UITapGestureRecognizer *tapGestureRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(labelTapped)];
     tapGestureRecognizer.numberOfTapsRequired = 2;
     [_trackLabel addGestureRecognizer:tapGestureRecognizer];
@@ -93,19 +100,11 @@
     [_bugrMenuButtonView addTarget:self action:@selector(menuButtonPressed) forControlEvents:UIControlEventTouchUpInside];
     _goToMenu = [[UIBarButtonItem alloc] initWithCustomView:_bugrMenuButtonView];
     self.navigationItem.leftBarButtonItem = _goToMenu;
-    
-    
-    //Add Menu View initially off screen
-    _menuView = [[MenuView alloc] initWithFrame:CGRectMake(-300, 100, self.view.bounds.size.width / 3, 200)];
-    _menuView.backgroundColor = [UIColor clearColor];
-    _menuView.layer.cornerRadius = 6;
-    _menuView.alpha = 0.0;
-    [self.view addSubview:_menuView];
 
     
     //Add About View initially transparent
-    _aboutView = [[AboutView alloc] initWithFrame:CGRectMake(0, 0, 200, 200)];
-    _aboutView.center = CGPointMake(self.view.frame.size.width  / 2, self.view.frame.size.height / 3);
+    _aboutView = [[AboutView alloc] initWithFrame:CGRectMake(0, 0, [UIScreen mainScreen].bounds.size.width - 40, 350)];
+    _aboutView.center = CGPointMake(self.view.frame.size.width  / 2, self.view.frame.size.height / 2);
     _aboutView.alpha = 0;
     [self.view addSubview:_aboutView];
     
@@ -119,15 +118,7 @@
     _startInfoBubbleView = [Presenter setStartBubbleView:_startInfoBubbleView trackLabel:_trackLabel controller:self];
     _startInfoBubbleView.hidden = YES;
     [self.view addSubview:_startInfoBubbleView];
-    
-    
-    //Add artist downloaded from LastFM image view via Presenter- !!!currently not working!!!
-    /*
-    _artistImageView = [Presenter setArtistImageView:_artistImageView controller:self];
-    [self.view addSubview:_artistImageView];
-    */
-    
-    
+
     // Play shoegaze
     [self play];
     
@@ -200,15 +191,12 @@
 -(void) labelTapped {
     
     // Add track name to global storage
-    [_trackNamesArray addObject:_trackLabel.text];
-    [[SavedTracksStorage sharedInstance].savedTracks addObjectsFromArray:_trackNamesArray];
-    
-    //Save global storage to UserDefaults
+    [_trackNamesArray addObject:_trackLabel.text];    
     dispatch_queue_t queue = dispatch_get_global_queue(QOS_CLASS_DEFAULT, 0);
     dispatch_async(queue, ^{
-        [[NSUserDefaults standardUserDefaults] setObject:[SavedTracksStorage sharedInstance].savedTracks forKey:@"Favorites"];
+        [[NSUserDefaults standardUserDefaults] setObject:self->_trackNamesArray forKey:@"Favorites"];
     });
-    
+
     //Animate Track label when double tapped
     [Animations animateTrackLabel:_trackLabel];
     
@@ -220,12 +208,7 @@
 // MARK: Go To Favorites View Button tapped method
 -(void) favButtonPressed {
     
-    dispatch_queue_t queue = dispatch_get_global_queue(QOS_CLASS_USER_INTERACTIVE, 0);
-    dispatch_sync(queue, ^{
-        self->_favoritesViewController = [[FavoritesTableViewController alloc] init];
-    });
-
-    //_favoritesViewController = [[FavoritesTableViewController alloc] init];
+    _favoritesViewController = [[FavoritesTableViewController alloc] init];
     [self.navigationController showViewController:_favoritesViewController sender:self];
     
 }
@@ -297,7 +280,7 @@
 {
     BOOL isFirstStart = [[NSUserDefaults standardUserDefaults] boolForKey:@"first_start"];
     if (!isFirstStart) {
-        [Animations animateBubbleView:_startInfoBubbleView];
+        [Animations animateBubbleView:_startInfoBubbleView button:_button];
     }
 }
 
@@ -305,6 +288,7 @@
 - (void)hideBubble {
     [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"first_start"];
     _startInfoBubbleView.hidden = YES;
+    _button.hidden = NO;
     [_startInfoBubbleView removeFromSuperview];
 }
 
@@ -340,18 +324,27 @@
 }
 
 
-
--(void) printFonts {
+//MARK: Check if anything in UserDefaults Favorites storage
+-(void) checkStorage {
     
-    for (NSString *familyName in [UIFont familyNames]){
-        NSLog(@"Family name: %@", familyName);
-        for (NSString *fontName in [UIFont fontNamesForFamilyName:familyName]) {
-            NSLog(@"--Font name: %@", fontName);
-        }
+    NSMutableArray *initialArray = [NSMutableArray new];
+    NSMutableArray *array = [[[NSUserDefaults standardUserDefaults] objectForKey:@"Favorites"] mutableCopy];
+    if (!array) {
+        [[NSUserDefaults standardUserDefaults] setObject:initialArray forKey:@"Favorites"];
     }
-    
-    
 }
+
+
+//MARK: Check if anything in UserDefaults Band Info cache
+-(void) checkBandInfoCache {
+    
+    NSMutableDictionary *initialDictionary = [NSMutableDictionary new];
+    NSMutableDictionary *dict = [[[NSUserDefaults standardUserDefaults] objectForKey:@"bandInfoCache"] mutableCopy];
+    if (!dict) {
+        [[NSUserDefaults standardUserDefaults] setObject:initialDictionary forKey:@"bandInfoCache"];
+    }
+}
+
 
 
 

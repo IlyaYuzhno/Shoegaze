@@ -14,6 +14,8 @@
 @property (nonatomic, strong) UISearchBar *searchBar;
 @property (nonatomic, strong) NSString *artistName;
 @property (nonatomic, strong) UIView *artistInfoView;
+@property (strong, nonatomic) NSMutableDictionary *bandInfoCache;
+
 
 @end
 
@@ -27,18 +29,23 @@
     //MARK: Create local data source from global
     //more secure I think :)
     _favoritesArray = [NSMutableArray new];
+    _bandInfoCache = [NSMutableDictionary new];
     
-    //Get saved tracks info in global queue
+    //Get saved tracks info async
     dispatch_queue_t queue = dispatch_get_global_queue(QOS_CLASS_USER_INTERACTIVE, 0);
-    dispatch_sync(queue, ^{
+    dispatch_async(queue, ^{
         self->_favoritesArray = [[[NSUserDefaults standardUserDefaults] objectForKey:@"Favorites"] mutableCopy];
         self->_filteredArray = self->_favoritesArray;
         dispatch_async(dispatch_get_main_queue(), ^{
             [self.tableView reloadData];
         });
     });
-    
 
+    
+    
+    
+    
+    
     //MARK: Add SearchBar
     _searchBar = [[UISearchBar alloc] initWithFrame:CGRectMake(0, 0, 320, 44)];
     _searchBar.delegate = self;
@@ -103,13 +110,10 @@
         [_favoritesArray removeObjectAtIndex:indexPath.row];
         _filteredArray =_favoritesArray;
         
-        //Delete row from the global storage
-        [[SavedTracksStorage sharedInstance].savedTracks removeObjectAtIndex:indexPath.row];
-        
-        //Save updated global storage to UserDefaults
+        //Save updated to UserDefaults
         dispatch_queue_t queue = dispatch_get_global_queue(QOS_CLASS_UTILITY, 0);
         dispatch_async(queue, ^{
-            [[NSUserDefaults standardUserDefaults] setObject:[SavedTracksStorage sharedInstance].savedTracks forKey:@"Favorites"];
+            [[NSUserDefaults standardUserDefaults] setObject:self->_favoritesArray forKey:@"Favorites"];
         });
 
         [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
@@ -136,6 +140,34 @@
 //MARK: Get artist info from LastFM API via APIManager
 - (void) getInfoFromLastFM:(NSString *)artistName {
     
+    //Read band info from cache
+    _bandInfoCache = [[[NSUserDefaults standardUserDefaults] objectForKey:@"bandInfoCache"] mutableCopy];
+    
+    //Check if band info exists in cache
+    if ([_bandInfoCache objectForKey:artistName]) {
+        
+        //INFO EXISTS
+        
+        //Get info text
+        NSMutableString *text = [_bandInfoCache valueForKey:artistName];
+        
+        //Show good text in main thread
+        dispatch_async(dispatch_get_main_queue(), ^{
+            
+            self->_artistInfoView = [Presenter setArtistInfoView:self->_artistInfoView text:text viewHeight:300];
+            
+            //add blur effect
+            [Presenter blurEffect:self->_artistInfoView controller:self];
+            
+            //show info view and animate it
+            [self.view addSubview:self->_artistInfoView];
+            [Animations animateBandInfoView:self->_artistInfoView];
+        });
+        
+    } else {
+        
+    // INFO NOT EXISTS so get it from LastFM
+        
     [[APIManager sharedInstance] artistWithRequest:artistName withCompletion:^(NSMutableString *info) {
         if (!info || [info isEqualToString:@""]) {
             // INFO not exist or empty
@@ -143,7 +175,7 @@
             [self infoNotExists];
 
         } else {
-            // INFO exists but may be contains only ahref
+            // INFO exists but may contain only ahref
             
             //Get ahref from INFO to compare with INFO itself
             NSMutableString *href = [NSMutableString stringWithString:[info componentsSeparatedByString:@" <"][1]];
@@ -161,26 +193,37 @@
                 NSMutableString *text = [NSMutableString stringWithString:[info componentsSeparatedByString:@" <"][0]]; // remove a href from info
                 
                 //Show good text
-                self->_artistInfoView = [Presenter setArtistInfoView:self->_artistInfoView text:text];
+                self->_artistInfoView = [Presenter setArtistInfoView:self->_artistInfoView text:text viewHeight:300];
+                
                 //add blur effect
                 [Presenter blurEffect:self->_artistInfoView controller:self];
-                //show info view
+                
+                //show info view and animate it
                 [self.view addSubview:self->_artistInfoView];
+                [Animations animateBandInfoView:self->_artistInfoView];
+                
+                //Add new band info to cache
+                [self->_bandInfoCache setObject:text forKey:artistName];
+                dispatch_queue_t queue = dispatch_get_global_queue(QOS_CLASS_UTILITY, 0);
+                dispatch_async(queue, ^{
+                    [[NSUserDefaults standardUserDefaults] setObject:self->_bandInfoCache forKey:@"bandInfoCache"];
+                });
                 
             }
         }
     }];
+    }
 }
 
 //MARK: What to do if Band INFO is bad
 -(void) infoNotExists {
     NSMutableString *noInfoLoaded =[NSMutableString stringWithString:@"SEEMS LIKE NO INFO ABOUT THIS BAND YET..."];
-    self->_artistInfoView = [Presenter setArtistInfoView:self->_artistInfoView text:noInfoLoaded];
+    self->_artistInfoView = [Presenter setArtistInfoView:self->_artistInfoView text:noInfoLoaded viewHeight:700];
     //add blur effect
     [Presenter blurEffect:self->_artistInfoView controller:self];
     //show info view
     [self.view addSubview:self->_artistInfoView];
-    
+    [Animations animateBandInfoView:self->_artistInfoView];
 }
 
 
