@@ -9,6 +9,8 @@
 #import "APIManager.h"
 #import "Presenter.h"
 #import "Animations.h"
+#import "CheckSystemMemory.h"
+
 
 NS_ASSUME_NONNULL_BEGIN
 

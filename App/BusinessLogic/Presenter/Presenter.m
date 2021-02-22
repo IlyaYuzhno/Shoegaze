@@ -50,22 +50,9 @@ NSString *simulatorDevice;
     
     button = [UIButton buttonWithType:UIButtonTypeCustom];
 
-    //MARK: Real devices model check
-    /*
-    /// iPhone model check
-     if ([model isEqualToString:@"iPhone SE (2nd generation)"] || [model isEqualToString:@"iPhone 8"] || [model isEqualToString:@"iPhone 7"] || [model isEqualToString:@"iPhone 6"] || [model isEqualToString:@"iPhone 6S"] ) {
-         
-         button.frame = iPhoneSEPlayButtonFrame;
-         
-     } else {
-         
-         button.frame = iPhone11PlayButtonFrame;
-     }
-    */
-    
-    
-    //MARK: Simulator devices check - to delete
-    // iPhone model check
+//MARK: Device model check
+#if TARGET_IPHONE_SIMULATOR
+    // Simulator iPhone model check
     if ([simulatorDevice isEqualToString:@"iPhone SE (2nd generation)"] || [simulatorDevice isEqualToString:@"iPhone 8"] || [simulatorDevice isEqualToString:@"iPhone 7"] || [simulatorDevice isEqualToString:@"iPhone 6"] || [simulatorDevice isEqualToString:@"iPhone 6S"] ) {
         
         button.frame = iPhoneSEPlayButtonFrame;
@@ -74,7 +61,20 @@ NSString *simulatorDevice;
         
         button.frame = iPhone11PlayButtonFrame;
     }
-    
+
+#else
+    // Real iPhone model check
+     if ([model isEqualToString:@"iPhone SE (2nd generation)"] || [model isEqualToString:@"iPhone 8"] || [model isEqualToString:@"iPhone 7"] || [model isEqualToString:@"iPhone 6"] || [model isEqualToString:@"iPhone 6S"] ) {
+         
+         button.frame = iPhoneSEPlayButtonFrame;
+         
+     } else {
+         
+         button.frame = iPhone11PlayButtonFrame;
+     }
+
+#endif
+
     button.clipsToBounds = YES;
     button.tag = 0;
     [button setTitle:@"PAUSE" forState:UIControlStateNormal];
@@ -89,25 +89,55 @@ NSString *simulatorDevice;
     return button;
 }
 
+
 //MARK: Set Favorites Button View
 +(UIButton *) setFavoritesButtonView:(UIButton *)button controller:(UIViewController *)controller {
     
     button = [[UIButton alloc] initWithFrame:CGRectMake(controller.view.bounds.size.width - 30, CGRectGetMinY(controller.view.frame) + 70, 80, 80)];
-    UIImage *img = [UIImage systemImageNamed:@"star"];
-    [button setImage:img forState:UIControlStateNormal];
+    
+    if (@available(iOS 13.0, *)) {
+        UIImage *img = [UIImage systemImageNamed:@"star"];
+        [button setImage:img forState:UIControlStateNormal];
+    } else {
+        UIImage *img = [UIImage imageNamed:@"star"];
+        [button setImage:img forState:UIControlStateNormal];
+    }
     button.contentHorizontalAlignment = UIControlContentHorizontalAlignmentFill;
     button.contentVerticalAlignment = UIControlContentVerticalAlignmentFill;
     button.imageView.contentMode = UIViewContentModeScaleAspectFit;
     button.tintColor =[UIColor colorWithRed:178/255.0 green:170/255.0 blue:156/255.0 alpha:0.2];
+    
     return button;
 }
+
+
+//MARK: Set iOS 12 Favorites Button View
++(UIButton *) setiOS12FavoritesButtonView:(UIButton *)button controller:(UIViewController *)controller {
+    
+    button = [UIButton buttonWithType:UIButtonTypeCustom];
+    UIImage *imageStar = [UIImage imageNamed:@"iOS12Star.png"];
+    button.frame = CGRectMake(0, 0, 10, 10);
+    button.tintColor = [UIColor clearColor];
+    button.backgroundColor = [UIColor clearColor];
+    [button setImage:imageStar forState:UIControlStateNormal];
+    [button setImage:[imageStar imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateHighlighted];
+    
+    return button;
+}
+
 
 //MARK: Set Bugr Menu Button View
 +(UIButton *) setBugrMenuButtonView:(UIButton *)button controller:(UIViewController *)controller {
     
     button= [[UIButton alloc] initWithFrame:CGRectMake(controller.view.bounds.size.width - 30, CGRectGetMinY(controller.view.frame) + 70, 80, 80)];
-    UIImage *imgBugr = [UIImage systemImageNamed:@"lineweight"];
-    [button setImage:imgBugr forState:UIControlStateNormal];
+    if (@available(iOS 13.0, *)) {
+        UIImage *imgBugr = [UIImage systemImageNamed:@"lineweight"];
+        [button setImage:imgBugr forState:UIControlStateNormal];
+    } else {
+        UIImage *imgBugr = [UIImage imageNamed:@"lineweight"];
+        [button setImage:imgBugr forState:UIControlStateNormal];
+    }
+    
     button.contentHorizontalAlignment = UIControlContentHorizontalAlignmentFill;
     button.contentVerticalAlignment = UIControlContentVerticalAlignmentFill;
     button.imageView.contentMode = UIViewContentModeScaleAspectFit;
@@ -116,28 +146,31 @@ NSString *simulatorDevice;
     return button;
 }
 
+
+//MARK: Set iOS 12 Bugr Menu Button View
++(UIButton *) setiOS12BugrMenuButtonView:(UIButton *)button controller:(UIViewController *)controller {
+    
+    button = [UIButton buttonWithType:UIButtonTypeCustom];
+    UIImage *image = [UIImage imageNamed:@"iOS12Bugr.png"];
+    button.frame = CGRectMake(0, 0, 10, 10);
+    button.tintColor = [UIColor lightGrayColor];
+    button.tag = 0;
+    [button setImage:image forState:UIControlStateNormal];
+    [button setImage:[image imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateHighlighted];
+
+    return button;
+}
+
+
+
 //MARK: Set Save Track pop-up label
 +(UILabel *) setSaveTrackLabel:(UILabel *)label trackLabel:(UILabel *)tracklabel controller:(UIViewController *)controller {
  
     label = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 100, 30)];
-    
-    //MARK: Real devices model check
-    /*
-    // iPhone SE
-     if ([model isEqualToString:@"iPhone SE (2nd generation)"] || [model isEqualToString:@"iPhone 8"] || [model isEqualToString:@"iPhone 7"] || [model isEqualToString:@"iPhone 6"] || [model isEqualToString:@"iPhone 6S"] ) {
-         
-         label.center = iPhoneSESaveLabelCenter;
-         
-     } else {
-         
-         label.center = iPhone11SaveLabelCenter;
-     }
-    */
-    
-    
-    //MARK: Simulator devices check - to delete
-    
-    // iPhone SE
+
+//MARK: Device model check
+#if TARGET_IPHONE_SIMULATOR
+    // Simulator iPhone model check
     if ([simulatorDevice isEqualToString:@"iPhone SE (2nd generation)"] || [simulatorDevice isEqualToString:@"iPhone 8"] || [simulatorDevice isEqualToString:@"iPhone 7"] || [simulatorDevice isEqualToString:@"iPhone 6"] || [simulatorDevice isEqualToString:@"iPhone 6S"] ) {
         
         label.center = iPhoneSESaveLabelCenter;
@@ -146,6 +179,19 @@ NSString *simulatorDevice;
         
         label.center = iPhone11SaveLabelCenter;
     }
+
+#else
+    // Real iPhone model check
+    if ([model isEqualToString:@"iPhone SE (2nd generation)"] || [model isEqualToString:@"iPhone 8"] || [model isEqualToString:@"iPhone 7"] || [model isEqualToString:@"iPhone 6"] || [model isEqualToString:@"iPhone 6S"] ) {
+        
+        label.center = iPhoneSESaveLabelCenter;
+        
+    } else {
+        
+        label.center = iPhone11SaveLabelCenter;
+    }
+
+#endif
     
     label.text = @"SAVED";
     label.textColor = [UIColor systemPinkColor];
@@ -159,22 +205,9 @@ NSString *simulatorDevice;
 //MARK: Set one-time start info Bubble View
 +(UIView *) setStartBubbleView: (UIView *)view trackLabel:(UILabel *)tracklabel controller:(UIViewController *)controller {
  
-    //MARK: Real devices model check
-    /*
-    // iPhone model check
-     if ([model isEqualToString:@"iPhone SE (2nd generation)"] || [model isEqualToString:@"iPhone 8"] || [model isEqualToString:@"iPhone 7"] || [model isEqualToString:@"iPhone 6"] || [model isEqualToString:@"iPhone 6S"] ) {
-         
-         view= [[BubbleView alloc] initWithFrame:CGRectMake(110, CGRectGetMinY(tracklabel.frame) + 115, 300, 250)];
-     } else {
-         
-         view= [[BubbleView alloc] initWithFrame:CGRectMake(140, CGRectGetMinY(tracklabel.frame) + 115, 300, 250)];
-     }
-    */
-    
-    
-    //MARK: Simulator devices check - to delete
-    
-    // iPhone model check
+//MARK: Device model check
+#if TARGET_IPHONE_SIMULATOR
+    // Simulator iPhone model check
     if ([simulatorDevice isEqualToString:@"iPhone SE (2nd generation)"] || [simulatorDevice isEqualToString:@"iPhone 8"] || [simulatorDevice isEqualToString:@"iPhone 7"] || [simulatorDevice isEqualToString:@"iPhone 6"] || [simulatorDevice isEqualToString:@"iPhone 6S"] ) {
         
         view= [[BubbleView alloc] initWithFrame:CGRectMake(110, CGRectGetMinY(tracklabel.frame) + 140, 300, 250)];
@@ -182,7 +215,18 @@ NSString *simulatorDevice;
         
         view= [[BubbleView alloc] initWithFrame:CGRectMake(140, CGRectGetMinY(tracklabel.frame) + 115, 300, 250)];
     }
-    
+#else
+    // Real iPhone model check
+    if ([model isEqualToString:@"iPhone SE (2nd generation)"] || [model isEqualToString:@"iPhone 8"] || [model isEqualToString:@"iPhone 7"] || [model isEqualToString:@"iPhone 6"] || [model isEqualToString:@"iPhone 6S"] ) {
+        
+        view= [[BubbleView alloc] initWithFrame:CGRectMake(110, CGRectGetMinY(tracklabel.frame) + 115, 300, 250)];
+    } else {
+        
+        view= [[BubbleView alloc] initWithFrame:CGRectMake(140, CGRectGetMinY(tracklabel.frame) + 115, 300, 250)];
+    }
+
+#endif
+
     view.backgroundColor = [UIColor clearColor];
     
     //Set Close button
@@ -210,31 +254,31 @@ NSString *simulatorDevice;
 //MARK: Set Artist Info View loaded from LastFM API
 +(UIView *) setArtistInfoView:(UIView *)view text:(NSMutableString *)text viewHeight:(int) height{
 
-    //MARK: Real devices model check
-    /*
-    // iPhone model check
-     if ([model isEqualToString:@"iPhone SE (2nd generation)"] || [model isEqualToString:@"iPhone 8"] || [model isEqualToString:@"iPhone 7"] || [model isEqualToString:@"iPhone 6"] || [model isEqualToString:@"iPhone 6S"] ) {
-         
-     view = [[UIView alloc] initWithFrame:CGRectMake([UIScreen mainScreen].bounds.origin.x + 10, [UIScreen mainScreen].bounds.origin.y + 30, [UIScreen mainScreen].bounds.size.width - 20, [UIScreen mainScreen].bounds.size.height - 180)];
-     } else {
-         
-     view = [[UIView alloc] initWithFrame:CGRectMake([UIScreen mainScreen].bounds.origin.x + 10, [UIScreen mainScreen].bounds.origin.y + 70, [UIScreen mainScreen].bounds.size.width - 20, [UIScreen mainScreen].bounds.size.height - height)];
-     }
-    */
-    
-    
-    //MARK: Simulator devices check - to delete
-    // iPhone model check
+
+//MARK: Device model check
+#if TARGET_IPHONE_SIMULATOR
+    // Simulator iPhone model check
     if ([simulatorDevice isEqualToString:@"iPhone SE (2nd generation)"] || [simulatorDevice isEqualToString:@"iPhone 8"] || [simulatorDevice isEqualToString:@"iPhone 7"] || [simulatorDevice isEqualToString:@"iPhone 6"] || [simulatorDevice isEqualToString:@"iPhone 6S"] ) {
         
         view = [[UIView alloc] initWithFrame:CGRectMake([UIScreen mainScreen].bounds.origin.x + 10, [UIScreen mainScreen].bounds.origin.y + 30, [UIScreen mainScreen].bounds.size.width - 20, [UIScreen mainScreen].bounds.size.height - 180)];
         
     } else {
-               
+        
         view = [[UIView alloc] initWithFrame:CGRectMake([UIScreen mainScreen].bounds.origin.x + 10, [UIScreen mainScreen].bounds.origin.y + 70, [UIScreen mainScreen].bounds.size.width - 20, [UIScreen mainScreen].bounds.size.height - height)];
         
     }
- 
+#else
+    // Real iPhone model check
+    if ([model isEqualToString:@"iPhone SE (2nd generation)"] || [model isEqualToString:@"iPhone 8"] || [model isEqualToString:@"iPhone 7"] || [model isEqualToString:@"iPhone 6"] || [model isEqualToString:@"iPhone 6S"] ) {
+        
+        view = [[UIView alloc] initWithFrame:CGRectMake([UIScreen mainScreen].bounds.origin.x + 10, [UIScreen mainScreen].bounds.origin.y + 30, [UIScreen mainScreen].bounds.size.width - 20, [UIScreen mainScreen].bounds.size.height - 180)];
+    } else {
+        
+        view = [[UIView alloc] initWithFrame:CGRectMake([UIScreen mainScreen].bounds.origin.x + 10, [UIScreen mainScreen].bounds.origin.y + 70, [UIScreen mainScreen].bounds.size.width - 20, [UIScreen mainScreen].bounds.size.height - height)];
+    }
+    
+#endif
+
     view.backgroundColor = [UIColor whiteColor];
     view.layer.cornerRadius = 8;
     view.clipsToBounds = YES;
@@ -242,7 +286,7 @@ NSString *simulatorDevice;
     //Set title label
     UILabel *viewTitle = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, view.bounds.size.width, 40)];
     viewTitle.backgroundColor = [UIColor clearColor];
-    viewTitle.text = @"BAND INFO:";
+    viewTitle.text = @" BAND INFO:";
     [viewTitle setFont:[UIFont fontWithName:@"HelveticaNeue-Bold" size:22.0f]];
     viewTitle.layer.cornerRadius = 8;
     viewTitle.clipsToBounds = YES;
@@ -283,7 +327,7 @@ NSString *simulatorDevice;
 //MARK: Set Blur effect
 +(void) blurEffect:(UIView *)view controller:(UITableViewController *)controller {
     
-    blurEffect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleProminent];
+    blurEffect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleDark];
     visualEffectView = [[UIVisualEffectView alloc] initWithEffect:blurEffect];
 
     [[visualEffectView contentView] addSubview:view];

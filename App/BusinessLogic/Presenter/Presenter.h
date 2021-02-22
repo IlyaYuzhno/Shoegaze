@@ -27,6 +27,10 @@ NS_ASSUME_NONNULL_BEGIN
 +(void) blurEffect:(UIView *)view controller:(UITableViewController *)controller;
 +(void) removeBlurEffect;
 
+//iOS 12 Buttons setup
++(UIButton *) setiOS12FavoritesButtonView:(UIButton *)button controller:(UIViewController *)controller;
++(UIButton *) setiOS12BugrMenuButtonView:(UIButton *)button controller:(UIViewController *)controller;
+
 @end
 
 NS_ASSUME_NONNULL_END

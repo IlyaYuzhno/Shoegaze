@@ -8,6 +8,10 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 #import "AboutView.h"
+#import "CheckDeviceModel.h"
+#import "MenuView.h"
+
+
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -20,6 +24,8 @@ NS_ASSUME_NONNULL_BEGIN
 +(void) animatePlayButtonTapped:(UIButton *)button;
 +(void) animateAboutView:(AboutView *)aboutView;
 +(void) animateBandInfoView:(UIView *)infoView;
++(void) animateAboutViewSlideOn:(UIView *)menuView;
++(void) animateAboutViewSlideOff:(UIView *)menuView;
 
 
 @end

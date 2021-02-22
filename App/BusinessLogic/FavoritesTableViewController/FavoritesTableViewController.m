@@ -21,14 +21,28 @@
 
 @implementation FavoritesTableViewController
 
+
+- (void)viewWillAppear:(BOOL)animated{
+    [super viewWillAppear:animated];
+    self.navigationController.navigationBar.prefersLargeTitles = YES;
+    [self.navigationController.navigationBar setBarTintColor:[UIColor clearColor]];
+    self.navigationController.navigationBar.titleTextAttributes
+    = @{NSForegroundColorAttributeName : [UIColor whiteColor]};
+    self.navigationController.navigationBar.largeTitleTextAttributes
+    = @{NSForegroundColorAttributeName : [UIColor whiteColor]};
+}
+
 - (void)viewDidLoad {
     [super viewDidLoad];
     
-    self.title = @"❤️❤️❤️";
+    
+    self.title = @"F A V O R I T E S";
+    self.tableView.backgroundColor = [UIColor blackColor];
     
     //MARK: Create local data source from global
     //more secure I think :)
     _favoritesArray = [NSMutableArray new];
+    _filteredArray = [NSArray new];
     _bandInfoCache = [NSMutableDictionary new];
     
     //Get saved tracks info async
@@ -41,15 +55,11 @@
         });
     });
 
-    
-    
-    
-    
-    
     //MARK: Add SearchBar
     _searchBar = [[UISearchBar alloc] initWithFrame:CGRectMake(0, 0, 320, 44)];
     _searchBar.delegate = self;
     self.tableView.tableHeaderView = _searchBar;
+    _searchBar.barTintColor = [UIColor clearColor];
     _searchBar.placeholder = @"Search shoegaze...";
     
     
@@ -79,6 +89,10 @@
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"favoritesCell" forIndexPath:indexPath];
     
+    cell.selectionStyle = UITableViewCellSelectionStyleNone;
+    [cell setBackgroundColor:[UIColor clearColor]];
+    cell.textLabel.textColor = [UIColor whiteColor];
+    cell.textLabel.font = [UIFont fontWithName:@"HelveticaNeue" size:24];
     cell.textLabel.text = _filteredArray[indexPath.row];
     
     return cell;
@@ -109,12 +123,9 @@
         //Delete the row from the local data source
         [_favoritesArray removeObjectAtIndex:indexPath.row];
         _filteredArray =_favoritesArray;
-        
+
         //Save updated to UserDefaults
-        dispatch_queue_t queue = dispatch_get_global_queue(QOS_CLASS_UTILITY, 0);
-        dispatch_async(queue, ^{
-            [[NSUserDefaults standardUserDefaults] setObject:self->_favoritesArray forKey:@"Favorites"];
-        });
+        [[NSUserDefaults standardUserDefaults] setObject:self->_favoritesArray forKey:@"Favorites"];
 
         [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
         
@@ -202,17 +213,20 @@
                 [self.view addSubview:self->_artistInfoView];
                 [Animations animateBandInfoView:self->_artistInfoView];
                 
-                //Add new band info to cache
+                //Check system memory and add new band info to cache
+                uint64_t freeMemory = [CheckSystemMemory getFreeDiskspace];
+                
+                if (freeMemory > 120) {
                 [self->_bandInfoCache setObject:text forKey:artistName];
                 dispatch_queue_t queue = dispatch_get_global_queue(QOS_CLASS_UTILITY, 0);
                 dispatch_async(queue, ^{
                     [[NSUserDefaults standardUserDefaults] setObject:self->_bandInfoCache forKey:@"bandInfoCache"];
                 });
-                
+                }
             }
         }
     }];
-    }
+  }
 }
 
 //MARK: What to do if Band INFO is bad

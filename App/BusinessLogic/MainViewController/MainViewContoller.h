@@ -17,7 +17,7 @@
 #import "Animations.h"
 #import "BubbleView.h"
 #import "CheckConnection.h"
-
+#import "CheckSystemMemory.h"
 
 
 NS_ASSUME_NONNULL_BEGIN

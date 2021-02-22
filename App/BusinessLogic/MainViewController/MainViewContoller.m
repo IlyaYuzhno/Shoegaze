@@ -3,7 +3,7 @@
 //  Shoegaze
 //
 //  Created by Ilya Doroshkevitch on 01.02.2021.
-//
+// TO DO: add server availability, add memory check
 
 #import "MainViewContoller.h"
 
@@ -29,6 +29,9 @@
 @property (strong, nonatomic) CheckConnection *reach;
 @property (strong, nonatomic) FavoritesTableViewController *favoritesViewController;
 @property (strong, nonatomic) NSMutableArray *trackNamesArray;
+//iOS12 buttons
+@property (strong, nonatomic) UIButton *iOS12BugrButton;
+@property (strong, nonatomic) UIButton *iOS12FavoriteButton;
 
 @end
 
@@ -39,36 +42,48 @@
     
     [Presenter initialize];
     
-    //Check internet connection
+    //MARK: Check internet connection
     [self checkConnection];
+
     
-    // Check if favorites tracks data and cache in UserDefaults exists
+    //MARK: Check if favorites tracks data and cache in UserDefaults exists
     [self checkStorage];
     [self checkBandInfoCache];
     
     
-    //Set self.view
-    self.view.backgroundColor = [UIColor whiteColor];
+    //MARK: Set self.view and navigation bar view
+    
+    if (@available(iOS 13.0, *)) {
+    self.view.backgroundColor = [UIColor clearColor];
     self.navigationController.navigationBar.prefersLargeTitles = YES;
+    } else {
+        self.view.backgroundColor = [UIColor clearColor];
+        self.navigationController.navigationBar.prefersLargeTitles = YES;
+        [self.navigationController.navigationBar setBackgroundImage:[UIImage new]
+                                                      forBarMetrics:UIBarMetricsDefault];
+        self.navigationController.navigationBar.shadowImage = [UIImage new];
+        self.navigationController.navigationBar.translucent = YES;
+    }
     
-    //Get Favorites data into local storage
+    
     _trackNamesArray = [NSMutableArray new];
-    _trackNamesArray = [[[NSUserDefaults standardUserDefaults] objectForKey:@"Favorites"] mutableCopy];
     
-    // Set visualizer background view
+    //MARK: Set visualizer background view
     self.backgroundView = [[UIView alloc] initWithFrame:self.view.frame];
     [_backgroundView setAutoresizingMask:UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth];
     [_backgroundView setBackgroundColor:[UIColor blackColor]];
     [self.view addSubview:_backgroundView];
     
-    //Add Menu View initially off screen
+    
+    //MARK: Add Menu View initially off screen
     _menuView = [[MenuView alloc] initWithFrame:CGRectMake(-300, 100, self.view.bounds.size.width / 3, 90)];
     _menuView.backgroundColor = [UIColor clearColor];
     _menuView.layer.cornerRadius = 6;
     _menuView.alpha = 0.0;
     [self.view addSubview:_menuView];
     
-    // Set track label via Presenter
+    
+    //MARK: Set track label via Presenter
     _trackLabel = [Presenter setTrackLabel:_trackLabel y:CGRectGetMaxY(_menuView.frame) controller:self];
     UITapGestureRecognizer *tapGestureRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(labelTapped)];
     tapGestureRecognizer.numberOfTapsRequired = 2;
@@ -76,53 +91,72 @@
     [self.view addSubview:_trackLabel];
     
     
-    // Add Play/Pause Button via Presenter
+    //MARK: Add Play/Pause Button via Presenter
     _button = [Presenter setPlayButton:_button trackLabel:_trackLabel controller:self];
     [_button addTarget:self action:@selector(playButtonPressed) forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:_button];
     
     
-    //Add visualizer
+    //MARK: Add visualizer
     self.visualizer = [[VisualizerView alloc] initWithFrame:self.view.frame];
     [_visualizer setAutoresizingMask:UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth];
     [_backgroundView addSubview:_visualizer];
     
     
-    //Add Favorites Button via Presenter
+    //MARK: Add Favorites Button via Presenter
+    if (@available(iOS 13.0, *)) {
     _favButtonView = [Presenter setFavoritesButtonView:_favButtonView controller:self];
     [_favButtonView addTarget:self action:@selector(favButtonPressed) forControlEvents:UIControlEventTouchUpInside];
     _goToFavorites = [[UIBarButtonItem alloc] initWithCustomView:_favButtonView];
+    
     self.navigationItem.rightBarButtonItem = _goToFavorites;
+    } else {
+        
+        _iOS12FavoriteButton = [Presenter setiOS12FavoritesButtonView:_iOS12FavoriteButton controller:self];
+       [_iOS12FavoriteButton addTarget:self action:@selector(favButtonPressed) forControlEvents:UIControlEventTouchUpInside];
+        self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithCustomView:_iOS12FavoriteButton];
+    }
     
-    
-    //Add bugr menu button via Presenter
+
+    //MARK: Add bugr menu button via Presenter
+    if (@available(iOS 13.0, *)) {
+        
     _bugrMenuButtonView = [Presenter setBugrMenuButtonView:_bugrMenuButtonView controller:self];
     [_bugrMenuButtonView addTarget:self action:@selector(menuButtonPressed) forControlEvents:UIControlEventTouchUpInside];
     _goToMenu = [[UIBarButtonItem alloc] initWithCustomView:_bugrMenuButtonView];
     self.navigationItem.leftBarButtonItem = _goToMenu;
-
+        
+    } else {
+        
+        _iOS12BugrButton = [Presenter setiOS12BugrMenuButtonView:_iOS12BugrButton controller:self];
+       [_iOS12BugrButton addTarget:self action:@selector(iOS12menuButtonPressed) forControlEvents:UIControlEventTouchUpInside];
+        
+        self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithCustomView:_iOS12BugrButton];
+    }
     
-    //Add About View initially transparent
+    
+    //MARK: Add About View initially transparent
     _aboutView = [[AboutView alloc] initWithFrame:CGRectMake(0, 0, [UIScreen mainScreen].bounds.size.width - 40, 350)];
     _aboutView.center = CGPointMake(self.view.frame.size.width  / 2, self.view.frame.size.height / 2);
     _aboutView.alpha = 0;
     [self.view addSubview:_aboutView];
     
     
-    //Add Save Track pop-up label via Presenter
+    //MARK: Add Save Track pop-up label via Presenter
     _saveLabel = [Presenter setSaveTrackLabel:_saveLabel trackLabel:_trackLabel controller:self];
     [self.view addSubview:_saveLabel];
     
     
-    //Add one time info Bubble view via Presenter
+    //MARK: Add one time info Bubble view via Presenter
     _startInfoBubbleView = [Presenter setStartBubbleView:_startInfoBubbleView trackLabel:_trackLabel controller:self];
     _startInfoBubbleView.hidden = YES;
     [self.view addSubview:_startInfoBubbleView];
 
-    // Play shoegaze
+    //MARK: Play shoegaze
     [self play];
     
-    //Subscribe to Menu View notifications
+    
+    //MARK: Subscribe to Menu View notifications
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(showAboutViewAndBlur) name:@"aboutPressed" object:nil];
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(removeBlur) name:@"aboutOKPressed" object:nil];
@@ -136,9 +170,14 @@
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
     
+    self.navigationController.navigationBar.prefersLargeTitles = YES;
+    
     [Animations animatePlayButton:_button];
     
+    if (@available(iOS 13.0, *)) {
     [self showBubbleInfoViewIfNeeded];
+    }
+    
 }
 
 
@@ -190,18 +229,37 @@
 // MARK: Track Label tapped method - Save track name to Defaults and animate labels
 -(void) labelTapped {
     
+    //Vibrate phone when saved
+    AudioServicesPlaySystemSound(kSystemSoundID_Vibrate);
+    
+    //Get Favorites data into local storage
+    _trackNamesArray = [[[NSUserDefaults standardUserDefaults] objectForKey:@"Favorites"] mutableCopy];
+
+    
+    
+    //Check if system memory is enough
+    uint64_t freeMemory = [CheckSystemMemory getFreeDiskspace];
+    
+    if (freeMemory > 120) {
+    
     // Add track name to global storage
-    [_trackNamesArray addObject:_trackLabel.text];    
-    dispatch_queue_t queue = dispatch_get_global_queue(QOS_CLASS_DEFAULT, 0);
-    dispatch_async(queue, ^{
-        [[NSUserDefaults standardUserDefaults] setObject:self->_trackNamesArray forKey:@"Favorites"];
-    });
+    [_trackNamesArray addObject:_trackLabel.text];
+ 
+    [[NSUserDefaults standardUserDefaults] setObject:self->_trackNamesArray forKey:@"Favorites"];
 
     //Animate Track label when double tapped
     [Animations animateTrackLabel:_trackLabel];
     
     //Save Track to Favorites animation method
     [Animations animateSaveTrack:_saveLabel favButton:_favButtonView trackLabel:_trackLabel controller:self];
+        
+    } else {
+        
+        UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"NOT ENOUGH MEMORY" message:@"Track will not be saved. Please clean your phone memory and try again." preferredStyle: UIAlertControllerStyleAlert];
+        [alertController addAction:[UIAlertAction actionWithTitle:@"OK" style:(UIAlertActionStyleDefault) handler:nil]];
+        [self presentViewController:alertController animated:YES completion:nil];
+        
+    }
 }
 
 
@@ -219,33 +277,38 @@
     
     if (_bugrMenuButtonView.tag == 0) {
         _bugrMenuButtonView.tag = 1;
-        _bugrMenuButtonView.tintColor = [UIColor colorWithRed:178/255.0 green:170/255.0 blue:156/255.0 alpha:0.2];
-        
-        //Animate slide menu off screen
-        [UIView animateWithDuration:0.2 delay:0 usingSpringWithDamping:0.5 initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveLinear animations:^{
-            self->_menuView.alpha = 0;
-            CGRect frame = self->_menuView.frame;
-            frame.origin.y = 100;
-            frame.origin.x = -300;
-            self->_menuView.frame = frame;
-        } completion: NULL];
-        
-    } else {
-        _bugrMenuButtonView.tag = 0;
         _bugrMenuButtonView.tintColor = [UIColor colorWithRed:178/255.0 green:170/255.0 blue:156/255.0 alpha:0.8];
         
         //Animate slide menu on screen
-        [UIView animateWithDuration:0.2 delay:0 usingSpringWithDamping:0.8 initialSpringVelocity:0.3 options:UIViewAnimationOptionCurveEaseOut animations:^{
-            self->_menuView.alpha = 1;
-            CGRect frame = self->_menuView.frame;
-            frame.origin.y = 100;
-            frame.origin.x = -10;
-            self->_menuView.frame = frame;
-        } completion: NULL];
+        [Animations animateAboutViewSlideOn:_menuView];
         
+    } else {
+        _bugrMenuButtonView.tag = 0;
+        _bugrMenuButtonView.tintColor = [UIColor colorWithRed:178/255.0 green:170/255.0 blue:156/255.0 alpha:0.2];
+        
+        //Animate slide menu off screen
+        [Animations animateAboutViewSlideOff:_menuView];
     }
     
 }
+
+//MARK: iOS12BugrMenu Button Pressed method
+- (void) iOS12menuButtonPressed {
+ 
+    if (_iOS12BugrButton.tag == 0) {
+        _iOS12BugrButton.tag = 1;
+        
+        //Animate slide menu on screen
+        [Animations animateAboutViewSlideOn:_menuView];
+
+    } else {
+        _iOS12BugrButton.tag = 0;
+        
+        //Animate slide menu off screen
+        [Animations animateAboutViewSlideOff:_menuView];
+    }
+}
+
 
 //MARK: Show About View and Blur background
 - (void) showAboutViewAndBlur {
@@ -295,8 +358,11 @@
 //MARK: Check internet connection availability
 - (void) checkConnection {
     
-    _reach = [CheckConnection reachabilityWithHostname:@"www.google.com"];
-
+    //_reach = [CheckConnection reachabilityWithHostname:@"google.com"];
+    //_reach = [CheckConnection reachabilityForInternetConnection];
+    _reach = [CheckConnection reachabilityWithURL:[NSURL URLWithString:@"https://maggie.torontocast.com:8090/live.mp3"]];
+    
+    
     _reach.reachableOnWWAN = YES;
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(reachabilityChanged:)
@@ -309,20 +375,11 @@
 //MARK: reachabilityChanged method
 - (void) reachabilityChanged:(NSNotification *)notification {
     if (!_reach.isReachable) {
-        UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"Connection error" message:@"OOPS!!!SEEMS LIKE NO INTERNET NOW!!!" preferredStyle: UIAlertControllerStyleAlert];
+        UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"CONNECTION ERROR" message:@"Oops!!!Seems no internet now or radio is unavailable. Please try again later." preferredStyle: UIAlertControllerStyleAlert];
         [alertController addAction:[UIAlertAction actionWithTitle:@"Uhhh:(" style:(UIAlertActionStyleDefault) handler:nil]];
         [self presentViewController:alertController animated:YES completion:nil];
     }
 }
-
-
-
-//MARK: Remove observers
-- (void)dealloc {
-    [[NSNotificationCenter defaultCenter] removeObserver:self];
-    [_reach stopNotifier];
-}
-
 
 //MARK: Check if anything in UserDefaults Favorites storage
 -(void) checkStorage {
@@ -345,46 +402,13 @@
     }
 }
 
+//MARK: Remove observers
+- (void)dealloc {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+    [_reach stopNotifier];
+}
 
 
 
 @end
 
-
-
-
-
-
-//MARK: Get artist image from LastFM API via APIManager - !!!currently doesn't work!!!
-/*
-- (void) getImageFromLastFM:(NSString *)artistName imageView:(UIImageView *) artistImageView  {
-
-    [[APIManager sharedInstance] artistWithRequest:artistName withCompletion:^(NSDictionary *imgUrl) {
-        if (imgUrl) {
-            NSString *url = [imgUrl objectForKey:@"#text"];
-            NSLog(@"%@", url);
-            if ([url isEqualToString:@"https://lastfm.freetls.fastly.net/i/u/174s/2a96cbd8b46e442fc41c2b86b821562f.png"] && [url isEqualToString:@""]) {
-                artistImageView.hidden = YES;
-            } else {
-                //add image to image view
-                artistImageView.image = nil;
-                artistImageView.hidden = NO;
-                NSURL *img = [NSURL URLWithString:url];
-                dispatch_queue_global_t globalQueue = dispatch_get_global_queue(QOS_CLASS_BACKGROUND, 0);
-                dispatch_async(globalQueue, ^{
-                    NSData *imgData = [NSData dataWithContentsOfURL:img];
-                    dispatch_async(dispatch_get_main_queue(), ^{
-                        artistImageView.image = [UIImage imageWithData:imgData];
-                        
-                    });
-                });
-            }
-            
-        } else {
-            // hide imageview if no image downloaded
-            artistImageView.hidden = YES;
-        }
-    }];
-
-}
-*/
