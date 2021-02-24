@@ -15,7 +15,7 @@
 @property (nonatomic, strong) NSString *artistName;
 @property (nonatomic, strong) UIView *artistInfoView;
 @property (strong, nonatomic) NSMutableDictionary *bandInfoCache;
-
+@property (strong, nonatomic) NetworkErrorView *networkErrorView;
 
 @end
 
@@ -45,7 +45,7 @@
     _filteredArray = [NSArray new];
     _bandInfoCache = [NSMutableDictionary new];
     
-    //Get saved tracks info async
+    //MARK: Get saved tracks info async
     dispatch_queue_t queue = dispatch_get_global_queue(QOS_CLASS_USER_INTERACTIVE, 0);
     dispatch_async(queue, ^{
         self->_favoritesArray = [[[NSUserDefaults standardUserDefaults] objectForKey:@"Favorites"] mutableCopy];
@@ -63,19 +63,27 @@
     _searchBar.placeholder = @"Search shoegaze...";
     
     
-    //MARK: Create info view
+    //MARK: Add info view
     _artistInfoView = [[UIView alloc] init];
     
-    //Set table view params
+    //MARK: Add network error view
+    _networkErrorView = [[NetworkErrorView alloc] initWithFrame:CGRectMake(10, -80, [UIScreen mainScreen].bounds.size.width - 20, 70)];
+    [self.tableView addSubview:_networkErrorView];
+    
+    
+    //MARK: Set table view params
     self.tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
     
     [self.tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:@"favoritesCell"];
     
     self.navigationItem.rightBarButtonItem = self.editButtonItem;
     
-    //Subscribe to notifications
+    //MARK: Subscribe to notifications
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(closeArtistInfoView) name: @"closeArtistInfoButtonPressed" object:nil];
     
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(networkErrorOn) name:@"internetError" object:nil];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(networkErrorOff) name:@"internetReachable" object:nil];
     
     
 }
@@ -247,6 +255,19 @@
     [Presenter removeBlurEffect];
     [_artistInfoView removeFromSuperview];
     
+}
+
+//MARK: Show Network Error View
+-(void) networkErrorOn {
+    
+    [Animations animateNetworkErrorViewSlideOn:_networkErrorView];
+}
+
+
+//MARK: Hide Network Error View
+-(void) networkErrorOff {
+    
+    [Animations animateNetworkErrorViewSlideOff:_networkErrorView];
 }
 
 

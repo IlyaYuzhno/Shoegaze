@@ -10,7 +10,7 @@
 #import "Presenter.h"
 #import "Animations.h"
 #import "CheckSystemMemory.h"
-
+#import "NetworkErrorView.h"
 
 NS_ASSUME_NONNULL_BEGIN
 

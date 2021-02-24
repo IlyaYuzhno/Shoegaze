@@ -15,7 +15,7 @@
 @property (nonatomic, strong) UILabel *trackLabel;
 @property (strong, nonatomic) VisualizerView *visualizer;
 @property (strong, nonatomic) UIView *backgroundView;
-@property (strong, nonatomic) UIButton *button;
+@property (strong, nonatomic) UIButton *playButton;
 @property (strong, nonatomic) UIButton *favButtonView;
 @property (strong, nonatomic) UIBarButtonItem *goToFavorites;
 @property (strong, nonatomic) UIButton *bugrMenuButtonView;
@@ -27,8 +27,10 @@
 @property (nonatomic, strong) UILabel *saveLabel;
 @property (strong, nonatomic) UIView *startInfoBubbleView;
 @property (strong, nonatomic) CheckConnection *reach;
+@property (strong, nonatomic) CheckConnection *hostReach;
 @property (strong, nonatomic) FavoritesTableViewController *favoritesViewController;
 @property (strong, nonatomic) NSMutableArray *trackNamesArray;
+@property (strong, nonatomic) NetworkErrorView *networkErrorView;
 //iOS12 buttons
 @property (strong, nonatomic) UIButton *iOS12BugrButton;
 @property (strong, nonatomic) UIButton *iOS12FavoriteButton;
@@ -42,7 +44,7 @@
     
     [Presenter initialize];
     
-    //MARK: Check internet connection
+    //MARK: Check internet connection and play shoegaze if connection is ok
     [self checkConnection];
 
     
@@ -52,7 +54,6 @@
     
     
     //MARK: Set self.view and navigation bar view
-    
     if (@available(iOS 13.0, *)) {
     self.view.backgroundColor = [UIColor clearColor];
     self.navigationController.navigationBar.prefersLargeTitles = YES;
@@ -82,7 +83,11 @@
     _menuView.alpha = 0.0;
     [self.view addSubview:_menuView];
     
+    //MARK: Add Network Error View initially above screen
+    _networkErrorView = [[NetworkErrorView alloc] initWithFrame:CGRectMake(10, -80, self.view.bounds.size.width - 20, 70)];
+    [self.view addSubview:_networkErrorView];
     
+
     //MARK: Set track label via Presenter
     _trackLabel = [Presenter setTrackLabel:_trackLabel y:CGRectGetMaxY(_menuView.frame) controller:self];
     UITapGestureRecognizer *tapGestureRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(labelTapped)];
@@ -92,9 +97,9 @@
     
     
     //MARK: Add Play/Pause Button via Presenter
-    _button = [Presenter setPlayButton:_button trackLabel:_trackLabel controller:self];
-    [_button addTarget:self action:@selector(playButtonPressed) forControlEvents:UIControlEventTouchUpInside];
-    [self.view addSubview:_button];
+    _playButton = [Presenter setPlayButton:_playButton trackLabel:_trackLabel controller:self];
+    [_playButton addTarget:self action:@selector(playButtonPressed) forControlEvents:UIControlEventTouchUpInside];
+    [self.view addSubview:_playButton];
     
     
     //MARK: Add visualizer
@@ -120,7 +125,6 @@
 
     //MARK: Add bugr menu button via Presenter
     if (@available(iOS 13.0, *)) {
-        
     _bugrMenuButtonView = [Presenter setBugrMenuButtonView:_bugrMenuButtonView controller:self];
     [_bugrMenuButtonView addTarget:self action:@selector(menuButtonPressed) forControlEvents:UIControlEventTouchUpInside];
     _goToMenu = [[UIBarButtonItem alloc] initWithCustomView:_bugrMenuButtonView];
@@ -152,9 +156,6 @@
     _startInfoBubbleView.hidden = YES;
     [self.view addSubview:_startInfoBubbleView];
 
-    //MARK: Play shoegaze
-    [self play];
-    
     
     //MARK: Subscribe to Menu View notifications
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(showAboutViewAndBlur) name:@"aboutPressed" object:nil];
@@ -172,12 +173,12 @@
     
     self.navigationController.navigationBar.prefersLargeTitles = YES;
     
-    [Animations animatePlayButton:_button];
+    //Animate play button
+    [Animations animatePlayButton:_playButton];
     
-    if (@available(iOS 13.0, *)) {
+    //Show first time view
     [self showBubbleInfoViewIfNeeded];
-    }
-    
+
 }
 
 
@@ -192,8 +193,44 @@
     [_playerItem addOutput:metadataOutput];
    
     _audioPlayer = [AVPlayer playerWithPlayerItem:_playerItem];
+    [_audioPlayer play];
+    
 
-    [_audioPlayer play]; 
+    //Check if player item stalled
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(playerItemStalled:) name:AVPlayerItemPlaybackStalledNotification object:_playerItem];
+    
+    //Check if player item status changed
+    [_playerItem addObserver:self forKeyPath:@"status" options:NSKeyValueObservingOptionNew context:NULL];
+    
+
+}
+
+//MARK: Observe PlayerItem Status Change
+- (void)observeValueForKeyPath:(NSString *)keyPath
+                      ofObject:(id)object
+                        change:(NSDictionary *)change
+                       context:(void *)context {
+  if ([keyPath isEqualToString:@"status"]) {
+
+      //Post notification about stall is off
+      [[NSNotificationCenter defaultCenter] postNotificationName:@"internetReachable" object:nil userInfo:nil];
+      
+      //Hide network error view
+      [Animations animateNetworkErrorViewSlideOff:_networkErrorView];
+      
+  }
+}
+
+
+//MARK: Observe if player item stalled
+- (void) playerItemStalled:(NSNotification *)notification
+{
+    //Post notification about stall is on
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"internetError" object:nil userInfo:nil];
+    
+    //Show network error view
+    [Animations animateNetworkErrorViewSlideOn:_networkErrorView];
+ 
 }
 
 
@@ -212,16 +249,16 @@
 - (void) playButtonPressed {
     
     //Animate button when tapped
-    [Animations animatePlayButtonTapped:_button];
+    [Animations animatePlayButtonTapped:_playButton];
     
-    if (_button.tag == 0) {
+    if (_playButton.tag == 0) {
     [_audioPlayer pause];
-    _button.tag = 1;
-    [_button setTitle:@"PLAY" forState:UIControlStateNormal];
+    _playButton.tag = 1;
+    [_playButton setTitle:@"PLAY" forState:UIControlStateNormal];
     } else {
         [_audioPlayer play];
-        _button.tag = 0;
-        [_button setTitle:@"PAUSE" forState:UIControlStateNormal];
+        _playButton.tag = 0;
+        [_playButton setTitle:@"PAUSE" forState:UIControlStateNormal];
     }
 }
 
@@ -235,8 +272,6 @@
     //Get Favorites data into local storage
     _trackNamesArray = [[[NSUserDefaults standardUserDefaults] objectForKey:@"Favorites"] mutableCopy];
 
-    
-    
     //Check if system memory is enough
     uint64_t freeMemory = [CheckSystemMemory getFreeDiskspace];
     
@@ -274,6 +309,7 @@
 
 //MARK: Bugr Menu Animate show and hide
 - (void) menuButtonPressed {
+    if (@available(iOS 13.0, *)) {
     
     if (_bugrMenuButtonView.tag == 0) {
         _bugrMenuButtonView.tag = 1;
@@ -289,21 +325,37 @@
         //Animate slide menu off screen
         [Animations animateAboutViewSlideOff:_menuView];
     }
-    
+    } else {
+        
+        if (_iOS12BugrButton.tag == 0) {
+            _iOS12BugrButton.tag = 1;
+            
+            //Animate slide menu on screen
+            [Animations animateAboutViewSlideOn:_menuView];
+            
+        } else {
+            _iOS12BugrButton.tag = 0;
+            
+            //Animate slide menu off screen
+            [Animations animateAboutViewSlideOff:_menuView];
+        }
+        
+        
+    }
 }
 
 //MARK: iOS12BugrMenu Button Pressed method
 - (void) iOS12menuButtonPressed {
- 
+
     if (_iOS12BugrButton.tag == 0) {
         _iOS12BugrButton.tag = 1;
-        
+
         //Animate slide menu on screen
         [Animations animateAboutViewSlideOn:_menuView];
 
     } else {
         _iOS12BugrButton.tag = 0;
-        
+
         //Animate slide menu off screen
         [Animations animateAboutViewSlideOff:_menuView];
     }
@@ -312,7 +364,8 @@
 
 //MARK: Show About View and Blur background
 - (void) showAboutViewAndBlur {
-
+    [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"first_start"];
+    
     // Create Blur effect
     _blurEffect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleLight];
     _visualEffectView = [[UIVisualEffectView alloc] initWithEffect:_blurEffect];
@@ -343,7 +396,12 @@
 {
     BOOL isFirstStart = [[NSUserDefaults standardUserDefaults] boolForKey:@"first_start"];
     if (!isFirstStart) {
-        [Animations animateBubbleView:_startInfoBubbleView button:_button];
+        
+        if (@available(iOS 13.0, *)) {
+        [Animations animateBubbleView:_startInfoBubbleView button:_playButton];
+        } else {
+            [self showAboutViewAndBlur];
+        }
     }
 }
 
@@ -351,35 +409,128 @@
 - (void)hideBubble {
     [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"first_start"];
     _startInfoBubbleView.hidden = YES;
-    _button.hidden = NO;
+    _playButton.hidden = NO;
     [_startInfoBubbleView removeFromSuperview];
 }
+
 
 //MARK: Check internet connection availability
 - (void) checkConnection {
     
-    //_reach = [CheckConnection reachabilityWithHostname:@"google.com"];
-    //_reach = [CheckConnection reachabilityForInternetConnection];
-    _reach = [CheckConnection reachabilityWithURL:[NSURL URLWithString:@"https://maggie.torontocast.com:8090/live.mp3"]];
-    
-    
-    _reach.reachableOnWWAN = YES;
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(reachabilityChanged:)
-                                                 name:kReachabilityChangedNotification
-                                               object:nil];
+    //Check for internet connection
+        [[NSNotificationCenter defaultCenter]
+              addObserver:self
+                 selector:@selector(reachabilityChanged:)
+                     name:kReachabilityChangedNotification
+                   object:nil];
 
-    [_reach startNotifier];
+        _reach = [CheckConnection
+                             reachabilityForInternetConnection];
+        [_reach startNotifier];
+
+        // Check if a pathway to a radio host exists
+        _hostReach = [CheckConnection reachabilityWithHostName:
+                         @"maggie.torontocast.com"];
+        [_hostReach startNotifier];
+    
 }
 
 //MARK: reachabilityChanged method
 - (void) reachabilityChanged:(NSNotification *)notification {
-    if (!_reach.isReachable) {
-        UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"CONNECTION ERROR" message:@"Oops!!!Seems no internet now or radio is unavailable. Please try again later." preferredStyle: UIAlertControllerStyleAlert];
-        [alertController addAction:[UIAlertAction actionWithTitle:@"Uhhh:(" style:(UIAlertActionStyleDefault) handler:nil]];
-        [self presentViewController:alertController animated:YES completion:nil];
+ 
+    // Called after network status changes
+    NetworkStatus internetStatus = [_reach currentReachabilityStatus];
+    switch (internetStatus)
+
+    {
+        case NotReachable:
+        {
+            // Show error view
+            [Animations animateNetworkErrorViewSlideOn:_networkErrorView];
+            
+            //Post notification about error
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"internetError" object:nil userInfo:nil];
+            
+            break;
+
+        }
+        case ReachableViaWiFi:
+        {
+            //Hide error view
+            [Animations animateNetworkErrorViewSlideOff:_networkErrorView];
+            
+            //Post notification about reachable
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"internetReachable" object:nil userInfo:nil];
+            
+            //Play shoegaze if wi-fi is available
+            [self play];
+            break;
+
+        }
+        case ReachableViaWWAN:
+        {
+            //Hide error view
+            [Animations animateNetworkErrorViewSlideOff:_networkErrorView];
+            
+            //Post notification about reachable
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"internetReachable" object:nil userInfo:nil];
+            
+            //Play shoegaze if cell network is available
+            [self play];
+            break;
+
+        }
+    }
+
+    NetworkStatus hostStatus = [_hostReach currentReachabilityStatus];
+    switch (hostStatus)
+
+    {
+        case NotReachable:
+        {
+            // Show error view
+            // [Animations animateNetworkErrorViewSlideOn:_networkErrorView];
+            //Post notification about error
+            //[[NSNotificationCenter defaultCenter] postNotificationName:@"internetError" object:nil userInfo:nil];
+            
+            
+            
+            break;
+
+        }
+        case ReachableViaWiFi:
+        {
+            
+            //Hide error view
+            //[Animations animateNetworkErrorViewSlideOff:_networkErrorView];
+            //Post notification about reachable
+            //[[NSNotificationCenter defaultCenter] postNotificationName:@"internetReachable" object:nil userInfo:nil];
+            
+            //Play shoegaze if cell network is available
+            //[self play];
+            
+            break;
+
+        }
+        case ReachableViaWWAN:
+        {
+            
+            //Hide error view
+           // [Animations animateNetworkErrorViewSlideOff:_networkErrorView];
+            //Post notification about reachable
+            //[[NSNotificationCenter defaultCenter] postNotificationName:@"internetReachable" object:nil userInfo:nil];
+            
+            //Play shoegaze if cell network is available
+            //[self play];
+            
+            
+            break;
+
+        }
+    
     }
 }
+
 
 //MARK: Check if anything in UserDefaults Favorites storage
 -(void) checkStorage {
@@ -405,7 +556,7 @@
 //MARK: Remove observers
 - (void)dealloc {
     [[NSNotificationCenter defaultCenter] removeObserver:self];
-    [_reach stopNotifier];
+    //[_reach stopNotifier];
 }
 
 

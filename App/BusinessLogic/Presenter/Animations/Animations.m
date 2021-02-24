@@ -150,7 +150,7 @@ theAnimation.timingFunction=[CAMediaTimingFunction functionWithName:kCAMediaTimi
 +(void) animateAboutViewSlideOn:(UIView *)menuView {
     
     //Animate slide menu on screen
-    [UIView animateWithDuration:0.2 delay:0 usingSpringWithDamping:0.8 initialSpringVelocity:0.3 options:UIViewAnimationOptionCurveEaseOut animations:^{
+    [UIView animateWithDuration:0.5 delay:0 usingSpringWithDamping:0.8 initialSpringVelocity:0.3 options:UIViewAnimationOptionCurveEaseOut animations:^{
         menuView.alpha = 1;
         CGRect frame = menuView.frame;
         frame.origin.y = 100;
@@ -164,7 +164,7 @@ theAnimation.timingFunction=[CAMediaTimingFunction functionWithName:kCAMediaTimi
 +(void) animateAboutViewSlideOff:(MenuView *)menuView {
     
     //Animate slide menu off screen
-    [UIView animateWithDuration:0.2 delay:0 usingSpringWithDamping:0.5 initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveLinear animations:^{
+    [UIView animateWithDuration:1 delay:0 usingSpringWithDamping:0.5 initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveLinear animations:^{
         menuView.alpha = 0;
         CGRect frame = menuView.frame;
         frame.origin.y = 100;
@@ -173,4 +173,46 @@ theAnimation.timingFunction=[CAMediaTimingFunction functionWithName:kCAMediaTimi
     } completion: NULL];
 }
     
+
+//MARK: Animate slide Network Error Menu On screen
++(void) animateNetworkErrorViewSlideOn:(UIView *)networkErrorView {
+    
+    //Animate slide menu on screen
+    [UIView animateWithDuration:0.5 delay:0 usingSpringWithDamping:0.8 initialSpringVelocity:0.3 options:UIViewAnimationOptionCurveEaseOut animations:^{
+        networkErrorView.alpha = 1;
+        CGRect frame = networkErrorView.frame;
+        frame.origin.y = [UIScreen mainScreen].bounds.origin.y + 100;
+        frame.origin.x = 10;
+        networkErrorView.frame = frame;
+    } completion: NULL];
+    
+    //Animate view
+    CABasicAnimation *networkErrorViewAnimation;
+    networkErrorViewAnimation=[CABasicAnimation animationWithKeyPath:@"transform.scale"];
+    networkErrorViewAnimation.duration=1.2;
+    networkErrorViewAnimation.repeatCount=HUGE_VALF;
+    networkErrorViewAnimation.autoreverses=YES;
+    networkErrorViewAnimation.fromValue=[NSNumber numberWithFloat:1.1];
+    networkErrorViewAnimation.toValue=[NSNumber numberWithFloat:0.9];
+    networkErrorViewAnimation.timingFunction=[CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseIn];
+    [networkErrorView.layer addAnimation:networkErrorViewAnimation forKey:@"animateOpacity"];
+    
+    
+    
+}
+
+//MARK: Animate slide About Menu Off screen
++(void) animateNetworkErrorViewSlideOff:(UIView *)networkErrorView{
+    
+    //Animate slide menu off screen
+    [UIView animateWithDuration:0.5 delay:0 usingSpringWithDamping:0.5 initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveLinear animations:^{
+        networkErrorView.alpha = 0;
+        CGRect frame = networkErrorView.frame;
+        frame.origin.y = -80;
+        frame.origin.x = 10;
+        networkErrorView.frame = frame;
+    } completion: NULL];
+}
+
+
 @end

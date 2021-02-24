@@ -26,6 +26,8 @@ NS_ASSUME_NONNULL_BEGIN
 +(void) animateBandInfoView:(UIView *)infoView;
 +(void) animateAboutViewSlideOn:(UIView *)menuView;
 +(void) animateAboutViewSlideOff:(UIView *)menuView;
++(void) animateNetworkErrorViewSlideOn:(UIView *)networkErrorView;
++(void) animateNetworkErrorViewSlideOff:(UIView *)networkErrorView;
 
 
 @end
