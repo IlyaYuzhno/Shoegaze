@@ -28,7 +28,8 @@ NS_ASSUME_NONNULL_BEGIN
 +(void) animateAboutViewSlideOff:(UIView *)menuView;
 +(void) animateNetworkErrorViewSlideOn:(UIView *)networkErrorView;
 +(void) animateNetworkErrorViewSlideOff:(UIView *)networkErrorView;
-
++(void) animateBufferingAudioViewSlideOn:(UIView *)bufferingAudioView;
++(void) animateBufferingAudioViewSlideOff:(UIView *)bufferingAudioView;
 
 @end
 

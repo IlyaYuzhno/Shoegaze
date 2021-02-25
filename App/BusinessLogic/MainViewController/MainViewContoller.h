@@ -19,6 +19,7 @@
 #import "CheckConnection.h"
 #import "CheckSystemMemory.h"
 #import "NetworkErrorView.h"
+#import "BufferingAudioView.h"
 
 NS_ASSUME_NONNULL_BEGIN
 

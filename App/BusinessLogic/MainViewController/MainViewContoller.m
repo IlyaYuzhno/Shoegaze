@@ -31,6 +31,7 @@
 @property (strong, nonatomic) FavoritesTableViewController *favoritesViewController;
 @property (strong, nonatomic) NSMutableArray *trackNamesArray;
 @property (strong, nonatomic) NetworkErrorView *networkErrorView;
+@property (strong, nonatomic) BufferingAudioView *bufferingAudioView;
 //iOS12 buttons
 @property (strong, nonatomic) UIButton *iOS12BugrButton;
 @property (strong, nonatomic) UIButton *iOS12FavoriteButton;
@@ -43,7 +44,7 @@
     [super viewDidLoad];
     
     [Presenter initialize];
-    
+
     //MARK: Check internet connection and play shoegaze if connection is ok
     [self checkConnection];
 
@@ -86,6 +87,11 @@
     //MARK: Add Network Error View initially above screen
     _networkErrorView = [[NetworkErrorView alloc] initWithFrame:CGRectMake(10, -80, self.view.bounds.size.width - 20, 70)];
     [self.view addSubview:_networkErrorView];
+    
+    //MARK: Add Buffering Audio View initially above screen
+    _bufferingAudioView = [[BufferingAudioView alloc] initWithFrame:CGRectMake(10, -80, self.view.bounds.size.width - 20, 40)];
+    [self.view addSubview:_bufferingAudioView];
+    
     
 
     //MARK: Set track label via Presenter
@@ -166,6 +172,14 @@
     
 }
 
+//MARK: ViewWillAppear
+- (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+    
+    //Animate play button
+    [Animations animatePlayButton:_playButton];
+    
+}
 
 //MARK: ViewDidAppear
 - (void)viewDidAppear:(BOOL)animated {
@@ -184,7 +198,7 @@
 
 //MARK: Radio Play method
 - (void) play {
-    
+
     NSURL *url = [NSURL URLWithString:@"https://maggie.torontocast.com:8090/live.mp3"];
     _avAsset = [AVURLAsset URLAssetWithURL:url options:nil];
     _playerItem = [AVPlayerItem playerItemWithAsset:_avAsset];
@@ -198,20 +212,24 @@
 
     //Check if player item stalled
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(playerItemStalled:) name:AVPlayerItemPlaybackStalledNotification object:_playerItem];
+
     
     //Check if player item status changed
     [_playerItem addObserver:self forKeyPath:@"status" options:NSKeyValueObservingOptionNew context:NULL];
-    
-
+    [_playerItem addObserver:self forKeyPath:@"playbackLikelyToKeepUp" options:NSKeyValueObservingOptionNew context:NULL];
+    [_playerItem addObserver:self forKeyPath:@"playbackBufferFull" options:NSKeyValueObservingOptionNew context:NULL];
+  
 }
 
-//MARK: Observe PlayerItem Status Change
+
+//MARK: Observe PlayerItem Buffer Status Change
 - (void)observeValueForKeyPath:(NSString *)keyPath
                       ofObject:(id)object
                         change:(NSDictionary *)change
                        context:(void *)context {
-  if ([keyPath isEqualToString:@"status"]) {
-
+  
+    if ([keyPath isEqualToString:@"status"]) {
+       
       //Post notification about stall is off
       [[NSNotificationCenter defaultCenter] postNotificationName:@"internetReachable" object:nil userInfo:nil];
       
@@ -219,6 +237,29 @@
       [Animations animateNetworkErrorViewSlideOff:_networkErrorView];
       
   }
+    
+    if ([keyPath isEqualToString:@"playbackLikelyToKeepUp"]) {
+        
+        //Post notification about stall is off
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"internetReachable" object:nil userInfo:nil];
+        
+        //Hide buffering audio view
+        [Animations animateBufferingAudioViewSlideOff:_bufferingAudioView];
+        
+    }
+    
+    if ([keyPath isEqualToString:@"playbackBufferFull"]) {
+        
+        //Show buffering audio view
+        [Animations animateBufferingAudioViewSlideOn:_bufferingAudioView];
+        
+        //Post notification about stall is on
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"internetError" object:nil userInfo:nil];
+        
+        //Play again
+        [self play];
+    }
+    
 }
 
 
@@ -230,7 +271,7 @@
     
     //Show network error view
     [Animations animateNetworkErrorViewSlideOn:_networkErrorView];
- 
+
 }
 
 
@@ -247,7 +288,7 @@
 
 //MARK: Pause music method
 - (void) playButtonPressed {
-    
+
     //Animate button when tapped
     [Animations animatePlayButtonTapped:_playButton];
     
@@ -492,9 +533,6 @@
             // [Animations animateNetworkErrorViewSlideOn:_networkErrorView];
             //Post notification about error
             //[[NSNotificationCenter defaultCenter] postNotificationName:@"internetError" object:nil userInfo:nil];
-            
-            
-            
             break;
 
         }
@@ -525,9 +563,9 @@
             
             
             break;
-
+            
         }
-    
+            
     }
 }
 
@@ -556,7 +594,11 @@
 //MARK: Remove observers
 - (void)dealloc {
     [[NSNotificationCenter defaultCenter] removeObserver:self];
-    //[_reach stopNotifier];
+    [_playerItem removeObserver:self forKeyPath:@"playbackLikelyToKeepUp"];
+    [_playerItem removeObserver:self forKeyPath:@"status"];
+    [_playerItem removeObserver:self forKeyPath:@"playbackBufferFull"];
+    [_reach stopNotifier];
+    [_hostReach stopNotifier];
 }
 
 

@@ -201,7 +201,7 @@ theAnimation.timingFunction=[CAMediaTimingFunction functionWithName:kCAMediaTimi
     
 }
 
-//MARK: Animate slide About Menu Off screen
+//MARK: Animate slide Network Error View Off screen
 +(void) animateNetworkErrorViewSlideOff:(UIView *)networkErrorView{
     
     //Animate slide menu off screen
@@ -213,6 +213,48 @@ theAnimation.timingFunction=[CAMediaTimingFunction functionWithName:kCAMediaTimi
         networkErrorView.frame = frame;
     } completion: NULL];
 }
+
+
+//MARK: Animate slide Buffer Audio On screen
++(void) animateBufferingAudioViewSlideOn:(UIView *)bufferingAudioView {
+    
+    //Animate slide menu on screen
+    [UIView animateWithDuration:0.5 delay:0 usingSpringWithDamping:0.8 initialSpringVelocity:0.3 options:UIViewAnimationOptionCurveEaseOut animations:^{
+        bufferingAudioView.alpha = 1;
+        CGRect frame = bufferingAudioView.frame;
+        frame.origin.y = [UIScreen mainScreen].bounds.origin.y + 100;
+        frame.origin.x = 10;
+        bufferingAudioView.frame = frame;
+    } completion: NULL];
+    
+    //Animate view
+    CABasicAnimation *bufferingAudioViewAnimation;
+    bufferingAudioViewAnimation=[CABasicAnimation animationWithKeyPath:@"transform.scale"];
+    bufferingAudioViewAnimation.duration=1.2;
+    bufferingAudioViewAnimation.repeatCount=HUGE_VALF;
+    bufferingAudioViewAnimation.autoreverses=YES;
+    bufferingAudioViewAnimation.fromValue=[NSNumber numberWithFloat:1.1];
+    bufferingAudioViewAnimation.toValue=[NSNumber numberWithFloat:0.9];
+    bufferingAudioViewAnimation.timingFunction=[CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseIn];
+    [bufferingAudioView.layer addAnimation:bufferingAudioViewAnimation forKey:@"animateOpacity"];
+    
+}
+
+//MARK: Animate slide Buffer Audio Off screen
++(void) animateBufferingAudioViewSlideOff:(UIView *)bufferingAudioView {
+    
+    //Animate slide view off screen
+    [UIView animateWithDuration:0.5 delay:0 usingSpringWithDamping:0.5 initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveLinear animations:^{
+        bufferingAudioView.alpha = 0;
+        CGRect frame = bufferingAudioView.frame;
+        frame.origin.y = -80;
+        frame.origin.x = 10;
+        bufferingAudioView.frame = frame;
+    } completion: NULL];
+    
+}
+
+
 
 
 @end
