@@ -13,6 +13,14 @@
 #define iPhone11SaveLabelCenter CGPointMake(CGRectGetMaxX(tracklabel.frame) - 180, CGRectGetMinY(tracklabel.frame) - 80);
 #define iPhoneSESaveLabelCenter CGPointMake(CGRectGetMinX(tracklabel.frame) + 200, CGRectGetMinY(tracklabel.frame) - 50);
 
+#define realPhoneModelCheck [model isEqualToString:@"iPhone SE (2nd generation)"] || [model isEqualToString:@"iPhone 8"] || [model isEqualToString:@"iPhone 7"] || [model isEqualToString:@"iPhone 6"] || [model isEqualToString:@"iPhone 6S"]
+
+#define simulatorPhoneModelCheck [simulatorDevice isEqualToString:@"iPhone SE (2nd generation)"] || [simulatorDevice isEqualToString:@"iPhone 8"] || [simulatorDevice isEqualToString:@"iPhone 7"] || [simulatorDevice isEqualToString:@"iPhone 6"] || [simulatorDevice isEqualToString:@"iPhone 6S"]
+
+#define defaultOriginXoffset 10
+
+
+
 static UIVisualEffect *blurEffect;
 static UIVisualEffectView *visualEffectView;
 NSString *model;
@@ -21,7 +29,7 @@ NSString *simulatorDevice;
 
 @implementation Presenter
 
-//Check device model in class init from MainViewController
+#pragma mark Check device model in class init from MainViewController
 + (void)initialize {
   if (self == [Presenter self]) {
       model = [CheckDeviceModel deviceName];
@@ -29,10 +37,10 @@ NSString *simulatorDevice;
   }
 }
 
-//MARK: Set Track Label
+#pragma mark Set Track Label
 +(UILabel *) setTrackLabel:(UILabel *)label y:(int)y controller:(UIViewController *)controller {
         
-    label = [[UILabel alloc] initWithFrame:CGRectMake(10, y, [UIScreen mainScreen].bounds.size.width - 20, 140)];
+    label = [[UILabel alloc] initWithFrame:CGRectMake(defaultOriginXoffset, y, [UIScreen mainScreen].bounds.size.width - 20, 140)];
     label.textColor = [UIColor whiteColor];
     label.numberOfLines = 0;
     label.adjustsFontSizeToFitWidth = NO;
@@ -45,7 +53,7 @@ NSString *simulatorDevice;
 
 }
 
-//MARK: Set Play/Pause Button
+#pragma mark Set Play/Pause Button
 +(UIButton *) setPlayButton:(UIButton *)button trackLabel:(UILabel *)label controller:(UIViewController *)controller {
     
     button = [UIButton buttonWithType:UIButtonTypeCustom];
@@ -53,7 +61,7 @@ NSString *simulatorDevice;
 //MARK: Device model check
 #if TARGET_IPHONE_SIMULATOR
     // Simulator iPhone model check
-    if ([simulatorDevice isEqualToString:@"iPhone SE (2nd generation)"] || [simulatorDevice isEqualToString:@"iPhone 8"] || [simulatorDevice isEqualToString:@"iPhone 7"] || [simulatorDevice isEqualToString:@"iPhone 6"] || [simulatorDevice isEqualToString:@"iPhone 6S"] ) {
+    if (simulatorPhoneModelCheck) {
         
         button.frame = iPhoneSEPlayButtonFrame;
         
@@ -64,7 +72,7 @@ NSString *simulatorDevice;
 
 #else
     // Real iPhone model check
-     if ([model isEqualToString:@"iPhone SE (2nd generation)"] || [model isEqualToString:@"iPhone 8"] || [model isEqualToString:@"iPhone 7"] || [model isEqualToString:@"iPhone 6"] || [model isEqualToString:@"iPhone 6S"] ) {
+     if (realPhoneModelCheck) {
          
          button.frame = iPhoneSEPlayButtonFrame;
          
@@ -79,7 +87,6 @@ NSString *simulatorDevice;
     button.tag = 0;
     [button setTitle:@"PAUSE" forState:UIControlStateNormal];
     button.titleLabel.font = [UIFont systemFontOfSize:21.0];
-    //_button.translatesAutoresizingMaskIntoConstraints = NO;
     CGFloat radius = MIN(button.frame.size.width, button.frame.size.height) / 2.0;
     button.layer.cornerRadius = radius;
     [button.layer setMasksToBounds:YES];
@@ -90,7 +97,7 @@ NSString *simulatorDevice;
 }
 
 
-//MARK: Set Favorites Button View
+#pragma mark Set Favorites Button View
 +(UIButton *) setFavoritesButtonView:(UIButton *)button controller:(UIViewController *)controller {
     
     button = [[UIButton alloc] initWithFrame:CGRectMake(controller.view.bounds.size.width - 30, CGRectGetMinY(controller.view.frame) + 70, 80, 80)];
@@ -111,7 +118,7 @@ NSString *simulatorDevice;
 }
 
 
-//MARK: Set iOS 12 Favorites Button View
+#pragma mark Set iOS 12 Favorites Button View
 +(UIButton *) setiOS12FavoritesButtonView:(UIButton *)button controller:(UIViewController *)controller {
     
     button = [UIButton buttonWithType:UIButtonTypeCustom];
@@ -126,7 +133,7 @@ NSString *simulatorDevice;
 }
 
 
-//MARK: Set Bugr Menu Button View
+#pragma mark Set Bugr Menu Button View
 +(UIButton *) setBugrMenuButtonView:(UIButton *)button controller:(UIViewController *)controller {
     
     button= [[UIButton alloc] initWithFrame:CGRectMake(controller.view.bounds.size.width - 30, CGRectGetMinY(controller.view.frame) + 70, 80, 80)];
@@ -147,7 +154,7 @@ NSString *simulatorDevice;
 }
 
 
-//MARK: Set iOS 12 Bugr Menu Button View
+#pragma mark Set iOS 12 Bugr Menu Button View
 +(UIButton *) setiOS12BugrMenuButtonView:(UIButton *)button controller:(UIViewController *)controller {
     
     button = [UIButton buttonWithType:UIButtonTypeCustom];
@@ -163,7 +170,7 @@ NSString *simulatorDevice;
 
 
 
-//MARK: Set Save Track pop-up label
+#pragma mark Set Save Track pop-up label
 +(UILabel *) setSaveTrackLabel:(UILabel *)label trackLabel:(UILabel *)tracklabel controller:(UIViewController *)controller {
  
     label = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 100, 30)];
@@ -171,7 +178,7 @@ NSString *simulatorDevice;
 //MARK: Device model check
 #if TARGET_IPHONE_SIMULATOR
     // Simulator iPhone model check
-    if ([simulatorDevice isEqualToString:@"iPhone SE (2nd generation)"] || [simulatorDevice isEqualToString:@"iPhone 8"] || [simulatorDevice isEqualToString:@"iPhone 7"] || [simulatorDevice isEqualToString:@"iPhone 6"] || [simulatorDevice isEqualToString:@"iPhone 6S"] ) {
+    if (simulatorPhoneModelCheck) {
         
         label.center = iPhoneSESaveLabelCenter;
         
@@ -182,7 +189,7 @@ NSString *simulatorDevice;
 
 #else
     // Real iPhone model check
-    if ([model isEqualToString:@"iPhone SE (2nd generation)"] || [model isEqualToString:@"iPhone 8"] || [model isEqualToString:@"iPhone 7"] || [model isEqualToString:@"iPhone 6"] || [model isEqualToString:@"iPhone 6S"] ) {
+    if (realPhoneModelCheck) {
         
         label.center = iPhoneSESaveLabelCenter;
         
@@ -202,13 +209,13 @@ NSString *simulatorDevice;
 }
 
 
-//MARK: Set one-time start info Bubble View
+#pragma mark Set one-time start info Bubble View
 +(UIView *) setStartBubbleView: (UIView *)view trackLabel:(UILabel *)tracklabel controller:(UIViewController *)controller {
  
 //MARK: Device model check
 #if TARGET_IPHONE_SIMULATOR
     // Simulator iPhone model check
-    if ([simulatorDevice isEqualToString:@"iPhone SE (2nd generation)"] || [simulatorDevice isEqualToString:@"iPhone 8"] || [simulatorDevice isEqualToString:@"iPhone 7"] || [simulatorDevice isEqualToString:@"iPhone 6"] || [simulatorDevice isEqualToString:@"iPhone 6S"] ) {
+    if (simulatorPhoneModelCheck ) {
         
         view= [[BubbleView alloc] initWithFrame:CGRectMake(110, CGRectGetMinY(tracklabel.frame) + 140, 300, 250)];
     } else {
@@ -217,7 +224,7 @@ NSString *simulatorDevice;
     }
 #else
     // Real iPhone model check
-    if ([model isEqualToString:@"iPhone SE (2nd generation)"] || [model isEqualToString:@"iPhone 8"] || [model isEqualToString:@"iPhone 7"] || [model isEqualToString:@"iPhone 6"] || [model isEqualToString:@"iPhone 6S"] ) {
+    if (realPhoneModelCheck) {
         
         view= [[BubbleView alloc] initWithFrame:CGRectMake(110, CGRectGetMinY(tracklabel.frame) + 115, 300, 250)];
     } else {
@@ -243,7 +250,7 @@ NSString *simulatorDevice;
 }
 
 
-//MARK: One-time start info Bubble View Close button pressed method
+#pragma mark One-time start info Bubble View Close button pressed method
 +(void)closeBubbleButtonPressed:(UIButton *)sender {
         
     //Send notification when Close Bubble pressed
@@ -251,14 +258,14 @@ NSString *simulatorDevice;
     
 }
 
-//MARK: Set Artist Info View loaded from LastFM API
+#pragma mark Set Artist Info View loaded from LastFM API
 +(UIView *) setArtistInfoView:(UIView *)view text:(NSMutableString *)text viewHeight:(int) height{
 
 
 //MARK: Device model check
 #if TARGET_IPHONE_SIMULATOR
     // Simulator iPhone model check
-    if ([simulatorDevice isEqualToString:@"iPhone SE (2nd generation)"] || [simulatorDevice isEqualToString:@"iPhone 8"] || [simulatorDevice isEqualToString:@"iPhone 7"] || [simulatorDevice isEqualToString:@"iPhone 6"] || [simulatorDevice isEqualToString:@"iPhone 6S"] ) {
+    if (simulatorPhoneModelCheck ) {
         
         view = [[UIView alloc] initWithFrame:CGRectMake([UIScreen mainScreen].bounds.origin.x + 10, [UIScreen mainScreen].bounds.origin.y + 30, [UIScreen mainScreen].bounds.size.width - 20, [UIScreen mainScreen].bounds.size.height - 180)];
         
@@ -269,12 +276,12 @@ NSString *simulatorDevice;
     }
 #else
     // Real iPhone model check
-    if ([model isEqualToString:@"iPhone SE (2nd generation)"] || [model isEqualToString:@"iPhone 8"] || [model isEqualToString:@"iPhone 7"] || [model isEqualToString:@"iPhone 6"] || [model isEqualToString:@"iPhone 6S"] ) {
+    if (realPhoneModelCheck ) {
         
-        view = [[UIView alloc] initWithFrame:CGRectMake([UIScreen mainScreen].bounds.origin.x + 10, [UIScreen mainScreen].bounds.origin.y + 30, [UIScreen mainScreen].bounds.size.width - 20, [UIScreen mainScreen].bounds.size.height - 180)];
+        view = [[UIView alloc] initWithFrame:CGRectMake([UIScreen mainScreen].bounds.origin.x + defaultOriginXoffset, [UIScreen mainScreen].bounds.origin.y + 30, [UIScreen mainScreen].bounds.size.width - 20, [UIScreen mainScreen].bounds.size.height - 180)];
     } else {
         
-        view = [[UIView alloc] initWithFrame:CGRectMake([UIScreen mainScreen].bounds.origin.x + 10, [UIScreen mainScreen].bounds.origin.y + 70, [UIScreen mainScreen].bounds.size.width - 20, [UIScreen mainScreen].bounds.size.height - height)];
+        view = [[UIView alloc] initWithFrame:CGRectMake([UIScreen mainScreen].bounds.origin.x + defaultOriginXoffset, [UIScreen mainScreen].bounds.origin.y + 70, [UIScreen mainScreen].bounds.size.width - 20, [UIScreen mainScreen].bounds.size.height - height)];
     }
     
 #endif
@@ -316,7 +323,7 @@ NSString *simulatorDevice;
     return view;
 }
 
-//MARK: Artist Info View Close button pressed method
+#pragma mark Artist Info View Close button pressed method
 +(void)closeArtistInfoButtonPressed:(UIButton *)sender {
         
     //Send notification when Close Info pressed
@@ -324,7 +331,7 @@ NSString *simulatorDevice;
     
 }
 
-//MARK: Set Blur effect
+#pragma mark Set Blur effect
 +(void) blurEffect:(UIView *)view controller:(UITableViewController *)controller {
     
     blurEffect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleDark];
@@ -338,7 +345,7 @@ NSString *simulatorDevice;
     
 }
 
-//MARK: Remove Blur effect
+#pragma mark Remove Blur effect
 +(void) removeBlurEffect {
     
     [visualEffectView removeFromSuperview];

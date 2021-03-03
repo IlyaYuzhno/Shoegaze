@@ -35,7 +35,6 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     
-    
     self.title = @"F A V O R I T E S";
     self.tableView.backgroundColor = [UIColor blackColor];
     
@@ -54,7 +53,7 @@
             [self.tableView reloadData];
         });
     });
-
+    
     //MARK: Add SearchBar
     _searchBar = [[UISearchBar alloc] initWithFrame:CGRectMake(0, 0, 320, 44)];
     _searchBar.delegate = self;
@@ -124,17 +123,17 @@
 }
 
 
-//MARK: Edit rows and update Global Storage
+//MARK: Edit rows and update Global UserDefaults Storage
 - (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
     if (editingStyle == UITableViewCellEditingStyleDelete) {
         
         //Delete the row from the local data source
         [_favoritesArray removeObjectAtIndex:indexPath.row];
         _filteredArray =_favoritesArray;
-
+        
         //Save updated to UserDefaults
         [[NSUserDefaults standardUserDefaults] setObject:self->_favoritesArray forKey:@"Favorites"];
-
+        
         [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
         
     }
@@ -147,13 +146,12 @@
     
     // Get artist name and track name from trackLabel text to search info
     NSString *artistName = [cell.textLabel.text componentsSeparatedByString:@" -"][0];
-    //NSString *trackName = [_trackLabel.text componentsSeparatedByString:@"- "][1];
     
     //Get artist info async
     dispatch_queue_t queue = dispatch_get_global_queue(QOS_CLASS_USER_INTERACTIVE, 0);
     dispatch_async(queue, ^{
-    [self getInfoFromLastFM:artistName];
-        });
+        [self getInfoFromLastFM:artistName];
+    });
 }
 
 //MARK: Get artist info from LastFM API via APIManager
@@ -185,56 +183,56 @@
         
     } else {
         
-    // INFO NOT EXISTS so get it from LastFM
+        // INFO NOT EXISTS so get it from LastFM
         
-    [[APIManager sharedInstance] artistWithRequest:artistName withCompletion:^(NSMutableString *info) {
-        if (!info || [info isEqualToString:@""]) {
-            // INFO not exist or empty
-            
-            [self infoNotExists];
-
-        } else {
-            // INFO exists but may contain only ahref
-            
-            //Get ahref from INFO to compare with INFO itself
-            NSMutableString *href = [NSMutableString stringWithString:[info componentsSeparatedByString:@" <"][1]];
-            NSString *ahref = [@" <" stringByAppendingString:href];
-            
-            //Compare INFO and ahref
-            if ([info isEqualToString:ahref]) {
+        [[APIManager sharedInstance] artistWithRequest:artistName withCompletion:^(NSMutableString *info) {
+            if (!info || [info isEqualToString:@""]) {
+                // INFO not exist or empty
                 
                 [self infoNotExists];
                 
             } else {
-                // INFO exists and OK
+                // INFO exists but may contain only ahref
                 
-                //Get only useful text from good INFO
-                NSMutableString *text = [NSMutableString stringWithString:[info componentsSeparatedByString:@" <"][0]]; // remove a href from info
+                //Get ahref from INFO to compare with INFO itself
+                NSMutableString *href = [NSMutableString stringWithString:[info componentsSeparatedByString:@" <"][1]];
+                NSString *ahref = [@" <" stringByAppendingString:href];
                 
-                //Show good text
-                self->_artistInfoView = [Presenter setArtistInfoView:self->_artistInfoView text:text viewHeight:300];
-                
-                //add blur effect
-                [Presenter blurEffect:self->_artistInfoView controller:self];
-                
-                //show info view and animate it
-                [self.view addSubview:self->_artistInfoView];
-                [Animations animateBandInfoView:self->_artistInfoView];
-                
-                //Check system memory and add new band info to cache
-                uint64_t freeMemory = [CheckSystemMemory getFreeDiskspace];
-                
-                if (freeMemory > 120) {
-                [self->_bandInfoCache setObject:text forKey:artistName];
-                dispatch_queue_t queue = dispatch_get_global_queue(QOS_CLASS_UTILITY, 0);
-                dispatch_async(queue, ^{
-                    [[NSUserDefaults standardUserDefaults] setObject:self->_bandInfoCache forKey:@"bandInfoCache"];
-                });
+                //Compare INFO and ahref
+                if ([info isEqualToString:ahref]) {
+                    
+                    [self infoNotExists];
+                    
+                } else {
+                    // INFO exists and OK
+                    
+                    //Get only useful text from good INFO
+                    NSMutableString *text = [NSMutableString stringWithString:[info componentsSeparatedByString:@" <"][0]]; // remove a href from info
+                    
+                    //Show good text
+                    self->_artistInfoView = [Presenter setArtistInfoView:self->_artistInfoView text:text viewHeight:300];
+                    
+                    //add blur effect
+                    [Presenter blurEffect:self->_artistInfoView controller:self];
+                    
+                    //show info view and animate it
+                    [self.view addSubview:self->_artistInfoView];
+                    [Animations animateBandInfoView:self->_artistInfoView];
+                    
+                    //Check system memory and add new band info to cache
+                    uint64_t freeMemory = [CheckSystemMemory getFreeDiskspace];
+                    
+                    if (freeMemory > 120) {
+                        [self->_bandInfoCache setObject:text forKey:artistName];
+                        dispatch_queue_t queue = dispatch_get_global_queue(QOS_CLASS_UTILITY, 0);
+                        dispatch_async(queue, ^{
+                            [[NSUserDefaults standardUserDefaults] setObject:self->_bandInfoCache forKey:@"bandInfoCache"];
+                        });
+                    }
                 }
             }
-        }
-    }];
-  }
+        }];
+    }
 }
 
 //MARK: What to do if Band INFO is bad
