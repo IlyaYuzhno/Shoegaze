@@ -4,6 +4,8 @@
 ![6 5 inches Display Favorite tracks screen](https://user-images.githubusercontent.com/63192967/121852836-b4ab1a00-ccf8-11eb-8d58-3a9f3adb91a8.png)
 ![6 5 inches Display Band Info exists and showed](https://user-images.githubusercontent.com/63192967/121852910-d6a49c80-ccf8-11eb-80d9-17ba4d2b5cc7.png)
 # Shoegaze
-Simple on-line shoegaze radio - DKFM restreaming with band\song names saving and information feature.
+Simple on-line shoegaze radio - DKFM restreaming with band\song names saving and information feature. 
+
+Play\Pause, SAVED and Favorites button animated.
 
 Written on Obj-C using AVFoundation framework.
